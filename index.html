@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nubia's Ice Cream</title>
+  <meta name="description" content="Today's flavors and whether we're open.">
+  <meta name="theme-color" content="#0e1116">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div class="brand"><img src="icon.svg" alt="" class="logo"> <span id="shop-name">Nubia's Ice Cream</span></div>
+      <div id="lang" class="lang" data-lang="es" role="group" aria-label="Idioma / Language">
+        <button type="button" data-lang="es">ES</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </header>
+
+    <!-- public view -->
+    <section id="view-public">
+      <div id="status" class="status loading">
+        <span class="dot"></span>
+        <div>
+          <div id="status-text" class="status-text" data-i18n="loading">Cargando…</div>
+          <div id="status-note" class="status-note"></div>
+        </div>
+      </div>
+
+      <h2 class="section-title" data-i18n="flavorsToday">Sabores del día</h2>
+      <ul id="flavors" class="flavors"></ul>
+
+      <p id="hours" class="hours"></p>
+      <p id="updated" class="updated"></p>
+      <div class="foot"><button id="btn-nubia" class="ghost small" data-i18n="iamNubia">Soy Nubia</button></div>
+    </section>
+
+    <!-- editor (Nubia only) -->
+    <section id="view-edit" class="hidden">
+      <div class="card">
+        <div class="row between">
+          <div>
+            <div class="label" data-i18n="shopStatus">Estado de la tienda</div>
+            <div id="edit-open-label" class="big">Open</div>
+          </div>
+          <button id="edit-open" class="toggle" role="switch" aria-checked="true" aria-label="Open or closed"><span></span></button>
+        </div>
+        <div class="field">
+          <label for="edit-note" data-i18n="message">Mensaje (opcional)</label>
+          <input id="edit-note" maxlength="120" data-i18n-ph="messagePh" placeholder="">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label" data-i18n="flavorsToday">Sabores del día</div>
+        <ul id="edit-flavors" class="edit-flavors"></ul>
+        <form id="add-form" class="row">
+          <input id="add-name" maxlength="40" data-i18n-ph="addPh" placeholder="" autocomplete="off">
+          <button type="submit" data-i18n="add">Agregar</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label for="edit-shop" data-i18n="shopName">Nombre de la tienda</label>
+          <input id="edit-shop" maxlength="40">
+        </div>
+        <div class="field">
+          <label for="edit-hours" data-i18n="hours">Horario</label>
+          <input id="edit-hours" maxlength="80" data-i18n-ph="hoursPh" placeholder="">
+        </div>
+      </div>
+
+      <div class="savebar">
+        <button id="btn-logout" class="ghost" data-i18n="logout">Salir</button>
+        <span id="save-msg" class="save-msg"></span>
+        <button id="btn-save" class="primary" data-i18n="save">Guardar</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- password popup -->
+  <div id="login" class="modal hidden">
+    <form id="login-form" class="authbox">
+      <h1 data-i18n="hi">Hola Nubia 👋</h1>
+      <p class="tag" data-i18n="loginTag">Escribe tu contraseña para cambiar los sabores.</p>
+      <div class="field">
+        <label for="login-pw" data-i18n="password">Contraseña</label>
+        <input id="login-pw" type="password" autocomplete="current-password">
+      </div>
+      <div id="login-msg" class="err"></div>
+      <div class="row">
+        <button type="button" id="login-cancel" data-i18n="cancel">Cancelar</button>
+        <button type="submit" class="primary" id="login-go" data-i18n="unlock">Entrar</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="i18n.js"></script>
+  <script src="crypto.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

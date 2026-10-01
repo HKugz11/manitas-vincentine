@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Site Setup</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    ol { padding-left: 1.2rem; color: var(--dim); font-size: 0.92rem; }
+    ol li { margin-bottom: 0.35rem; }
+    code { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 0 0.3rem; font-size: 0.85em; }
+    #setup-msg.ok { color: var(--open); }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top"><div class="brand"><img src="icon.svg" alt="" class="logo"> <span>Site setup</span></div></header>
+
+    <div class="card">
+      <div class="label">1. Make a GitHub key (only you do this, once)</div>
+      <ol>
+        <li>On GitHub: <b>Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token</b>.</li>
+        <li>Repository access: <b>Only select repositories</b> → pick <b id="repo-name">this site's repo</b>.</li>
+        <li>Permissions → Repository → <b>Contents: Read and write</b>. Nothing else.</li>
+        <li>Pick the longest expiration it allows. When it expires, just do this page again.</li>
+      </ol>
+    </div>
+
+    <form id="setup-form" class="card">
+      <div class="label">2. Lock the key with Nubia's password</div>
+      <div class="field">
+        <label for="tok">GitHub key (starts with <code>github_pat_</code>)</label>
+        <input id="tok" type="password" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field">
+        <label for="pw1">Nubia's password (at least 10 characters; a few words is easiest)</label>
+        <input id="pw1" type="password" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="pw2">Same password again</label>
+        <input id="pw2" type="password" autocomplete="new-password">
+      </div>
+      <div class="row" style="margin-top:1rem">
+        <span id="setup-msg" class="err" style="flex:1;margin:0"></span>
+        <button class="primary" id="go">Lock &amp; save</button>
+      </div>
+    </form>
+    <p class="updated">The key is encrypted in your browser with the password and saved as <code>lock.json</code>. The password is never saved anywhere.</p>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="crypto.js"></script>
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    const cfg = window.SITE_CONFIG || {};
+    let owner = cfg.owner, repo = cfg.repo;
+    const branch = cfg.branch || 'main';
+    if ((!owner || !repo) && location.hostname.endsWith('.github.io')) {
+      owner = owner || location.hostname.split('.')[0];
+      repo = repo || location.pathname.split('/').filter(Boolean)[0] || location.hostname;
+    }
+    if (owner && repo) $('repo-name').textContent = `${owner}/${repo}`;
+    const api = `https://api.github.com/repos/${owner}/${repo}/contents/lock.json`;
+
+    $('setup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = $('setup-msg');
+      msg.className = 'err';
+      const tok = $('tok').value.trim(), pw = $('pw1').value;
+      if (!owner || !repo) { msg.textContent = 'Open this page on the github.io site (or fill in config.js).'; return; }
+      if (!tok) { msg.textContent = 'Paste the GitHub key.'; return; }
+      if (pw.length < 10) { msg.textContent = 'Password needs at least 10 characters.'; return; }
+      if (pw !== $('pw2').value) { msg.textContent = "Passwords don't match."; return; }
+      $('go').disabled = true;
+      msg.className = '';
+      msg.textContent = 'Checking key…';
+      try {
+        const headers = { Accept: 'application/vnd.github+json', Authorization: `Bearer ${tok}` };
+        const cur = await fetch(`${api}?ref=${branch}`, { headers, cache: 'no-store' });
+        if (!cur.ok) throw new Error(cur.status === 404 ? 'Key cannot see this repo (check repository access).' : `GitHub said ${cur.status}`);
+        const sha = (await cur.json()).sha;
+        msg.textContent = 'Locking…';
+        const lock = await Lock.lockSecret(tok, pw);
+        const put = await fetch(api, {
+          method: 'PUT', headers,
+          body: JSON.stringify({ message: 'Set up editor password', content: btoa(JSON.stringify(lock, null, 2) + '\n'), sha, branch }),
+        });
+        if (!put.ok) throw new Error(put.status === 403 ? 'Key needs Contents: Read and write.' : `GitHub said ${put.status}`);
+        $('setup-form').reset();
+        msg.className = 'ok';
+        msg.textContent = 'Done! Give Nubia the password. Works in about a minute.';
+      } catch (err) {
+        msg.className = 'err';
+        msg.textContent = err.message;
+      } finally {
+        $('go').disabled = false;
+      }
+    });
+  })();
+  </script>
+</body>
+</html>

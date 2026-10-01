@@ -1,0 +1,14 @@
+{
+  "shop": "Nubia's Ice Cream",
+  "open": true,
+  "note": "Come say hi!",
+  "hours": "Open daily 12pm – 9pm",
+  "flavors": [
+    { "name": "Vanilla Bean", "soldOut": false },
+    { "name": "Chocolate Fudge", "soldOut": false },
+    { "name": "Strawberry", "soldOut": false },
+    { "name": "Mint Chip", "soldOut": false },
+    { "name": "Cookies & Cream", "soldOut": false }
+  ],
+  "updated": "2026-10-01T12:00:00.000Z"
+}
