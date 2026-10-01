@@ -197,8 +197,23 @@
       }
       li.append(el('span', 'name', tx(f.name)));
       if (f.soldOut) li.append(el('span', 'pill', t('soldOut')));
+      if (f.price) li.append(el('span', 'amt', money(f.price)));
       ul.append(li);
     }
+  }
+
+  // "hoy, 4:47 p. m." / "ayer, ..." / "lun., ..." / "12 sept., ..."
+  function whenText(when) {
+    const loc = lang === 'es' ? 'es-EC' : 'en-US';
+    const time = when.toLocaleTimeString(loc, { hour: 'numeric', minute: '2-digit' });
+    const day = (dt) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate()).getTime();
+    const daysAgo = Math.round((day(new Date()) - day(when)) / 86400000);
+    let label;
+    if (daysAgo === 0) label = t('today');
+    else if (daysAgo === 1) label = t('yesterday');
+    else if (daysAgo > 1 && daysAgo < 7) label = when.toLocaleDateString(loc, { weekday: 'long' });
+    else label = when.toLocaleDateString(loc, { day: 'numeric', month: 'short' });
+    return `${label}, ${time}`;
   }
 
   function renderPublic() {
@@ -223,6 +238,9 @@
     const tops = (d.toppings || []).filter((f) => tx(f.name).trim());
     $('toppings-wrap').classList.toggle('hidden', !tops.length);
     renderScoops($('toppings'), tops, '');
+    const crepes = (d.crepes || []).filter((f) => tx(f.name).trim());
+    $('crepes-wrap').classList.toggle('hidden', !crepes.length);
+    renderScoops($('crepes'), crepes, '');
 
     const prices = (d.prices || []).filter((p) => tx(p.name).trim());
     $('prices-wrap').classList.toggle('hidden', !prices.length);
@@ -235,11 +253,7 @@
     }
 
     $('hours').textContent = tx(d.hours);
-    if (d.updated) {
-      const when = new Date(d.updated);
-      const loc = lang === 'es' ? 'es-EC' : 'en-US';
-      $('updated').textContent = `${t('updated')} ${when.toLocaleString(loc, { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
-    }
+    $('updated').textContent = d.updated ? `${t('updated')} ${whenText(new Date(d.updated))}` : '';
   }
 
   // ---------- editor ----------
@@ -251,12 +265,13 @@
 
   // An input with a little tag in front of it ("ES", "EN", "$").
   function tagged(tag, value, ph, onInput, attrs) {
-    const wrap = el('div', 'tagged');
+    const { className, ...inputAttrs } = attrs || {};
+    const wrap = el('div', 'tagged' + (className ? ' ' + className : ''));
     const input = el('input');
     input.value = value || '';
     input.placeholder = ph || '';
     input.maxLength = 60;
-    Object.assign(input, attrs || {});
+    Object.assign(input, inputAttrs);
     input.addEventListener('input', () => { onInput(input.value); renderPublic(); setDirty(true); });
     wrap.append(el('span', 'tag', tag), input);
     return wrap;
@@ -295,8 +310,9 @@
     ];
   }
 
-  // Editor rows for flavors and toppings: color dot, ES/EN names, sold out, photo, reorder.
-  function renderScoopEditor(ul, list, phEs, phEn) {
+  // Editor rows for flavors, toppings and crepes: color dot, ES/EN names, sold out, photo, reorder
+  // (+ a price box for crepes).
+  function renderScoopEditor(ul, list, phEs, phEn, withPrice) {
     ul.replaceChildren();
     list.forEach((f, i) => {
       f.name = bi(f.name);
@@ -315,6 +331,7 @@
         dot,
         tagged('ES', f.name.es, t(phEs), (v) => { f.name.es = v; recolor(); }),
         tagged('EN', f.name.en, t(phEn), (v) => { f.name.en = v; recolor(); }),
+        withPrice ? tagged(draft.currency || '$', f.price, t('pricePh'), (v) => { f.price = v.trim(); }, { inputMode: 'decimal', maxLength: 10, className: 'money' }) : '',
         actions,
       );
       if (openSwatch === f) li.append(swatches(f));
@@ -338,6 +355,7 @@
 
     renderScoopEditor($('edit-flavors'), draft.flavors, 'flavorEs', 'flavorEn');
     renderScoopEditor($('edit-toppings'), draft.toppings, 'toppingEs', 'toppingEn');
+    renderScoopEditor($('edit-crepes'), draft.crepes, 'crepeEs', 'crepeEn', true);
 
     // prices
     const pl = $('edit-prices');
@@ -357,7 +375,7 @@
     });
   }
 
-  let openSwatch = null;  // which flavor/topping has its color palette open
+  let openSwatch = null;  // which flavor/topping/crepe has its color palette open
 
   function swatches(f) {
     const box = el('div', 'swatches');
@@ -410,12 +428,14 @@
   }
   $('add-flavor').addEventListener('click', () => addAndFocus(draft.flavors, { name: { es: '', en: '' }, soldOut: false }, 'edit-flavors'));
   $('add-topping').addEventListener('click', () => addAndFocus(draft.toppings, { name: { es: '', en: '' }, soldOut: false }, 'edit-toppings'));
+  $('add-crepe').addEventListener('click', () => addAndFocus(draft.crepes, { name: { es: '', en: '' }, soldOut: false, price: '' }, 'edit-crepes'));
   $('add-price').addEventListener('click', () => addAndFocus(draft.prices, { name: { es: '', en: '' }, price: '' }, 'edit-prices'));
 
   function startEditing() {
     draft = JSON.parse(JSON.stringify(data));
     draft.flavors = draft.flavors || [];
     draft.toppings = draft.toppings || [];
+    draft.crepes = draft.crepes || [];
     draft.prices = draft.prices || [];
     draft.currency = draft.currency || '$';
     $('view-public').classList.add('hidden');
@@ -463,7 +483,7 @@
   // New photos are kept in the page until Save; then each one becomes a file in photos/.
   async function uploadPending(body) {
     if (isNewPhoto(body.banner)) body.banner = await uploadPhoto(body.banner);
-    for (const f of [...body.flavors, ...body.toppings]) if (isNewPhoto(f.photo)) f.photo = await uploadPhoto(f.photo);
+    for (const f of [...body.flavors, ...body.toppings, ...body.crepes]) if (isNewPhoto(f.photo)) f.photo = await uploadPhoto(f.photo);
   }
 
   // Trim text and drop rows she left blank.
@@ -474,6 +494,7 @@
     const named = (list) => list.map((f) => ({ ...f, name: trimBi(f.name) })).filter((f) => f.name.es || f.name.en);
     out.flavors = named(out.flavors);
     out.toppings = named(out.toppings || []);
+    out.crepes = named(out.crepes || []).map((f) => ({ ...f, price: String(f.price || '').trim() }));
     out.prices = out.prices.map((p) => ({ ...p, name: trimBi(p.name), price: String(p.price || '').trim() })).filter((p) => p.name.es || p.name.en);
     out.updated = new Date().toISOString();
     return out;
@@ -490,7 +511,7 @@
       if (demo) {
         await new Promise((r) => setTimeout(r, 400));
       } else {
-        if (isNewPhoto(body.banner) || [...body.flavors, ...body.toppings].some((f) => isNewPhoto(f.photo))) m.textContent = t('uploading');
+        if (isNewPhoto(body.banner) || [...body.flavors, ...body.toppings, ...body.crepes].some((f) => isNewPhoto(f.photo))) m.textContent = t('uploading');
         await uploadPending(body);
         m.textContent = t('saving');
         try {

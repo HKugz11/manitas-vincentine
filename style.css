@@ -1,36 +1,21 @@
-/* Iridium modern skin, ice-cream edition. One accent: soft-serve butter yellow (matches the icon) */
+/* Iridium modern skin, ice-cream edition: warm kefir cream, chocolate-brown text, caramel accent.
+   One warm look for everyone (no dark mode). */
 :root {
-  --bg: #0e1116;
-  --fg: #eef1f5;
-  --dim: #9aa4b2;
-  --muted: #5f6773;
-  --accent: #f6e08a;
-  --accent-ink: #1c1a10;
-  --sel: color-mix(in srgb, var(--accent) 5%, #1a1f28);
-  --line: color-mix(in srgb, var(--accent) 8%, #232833);
-  --open: #4fd57a;
-  --closed: #e05a5a;
-  --err: #e08787;
+  --bg: #fbf3e6;
+  --fg: #3d2a1e;
+  --dim: #8a6c55;
+  --muted: #b49c86;
+  --accent: #c47f2c;
+  --accent-ink: #ffffff;
+  --sel: #fffaf2;
+  --line: #eedcc3;
+  --open: #2f9450;
+  --closed: #c4483b;
+  --err: #c4483b;
   --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", sans-serif;
-  --glow: 14%;
-  color-scheme: dark;
-}
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f7f6f2;
-    --fg: #1c2128;
-    --dim: #6b7280;
-    --muted: #98a1ab;
-    --accent: #c99a1e;
-    --accent-ink: #ffffff;
-    --sel: color-mix(in srgb, var(--accent) 6%, #ffffff);
-    --line: color-mix(in srgb, var(--accent) 14%, #e3e6eb);
-    --open: #1f9d4c;
-    --closed: #c93c3c;
-    --err: #c93c3c;
-    --glow: 12%;
-    color-scheme: light;
-  }
+  --glow: 22%;
+  --shadow: 0 1px 2px rgba(120, 72, 30, 0.06), 0 6px 18px rgba(120, 72, 30, 0.06);
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; }
@@ -38,7 +23,7 @@ html, body { margin: 0; }
 body {
   min-height: 100vh;
   background: var(--bg);
-  background-image: radial-gradient(ellipse 75% 42% at 50% -6%, color-mix(in srgb, var(--accent) var(--glow), transparent), transparent 72%);
+  background-image: radial-gradient(ellipse 80% 45% at 50% -8%, color-mix(in srgb, #f6c98a var(--glow), transparent), transparent 72%);
   background-repeat: no-repeat;
   color: var(--fg);
   font-family: var(--sans);
@@ -133,11 +118,12 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in sr
 .prices li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.45rem 0; font-weight: 600; }
 .prices li + li { border-top: 1px solid var(--line); }
 .prices .leader { flex: 1; }
-.prices .amt { font-weight: 800; color: color-mix(in srgb, var(--accent) 70%, var(--fg)); font-variant-numeric: tabular-nums; }
+.prices .amt { font-weight: 800; color: color-mix(in srgb, var(--accent) 80%, var(--fg)); font-variant-numeric: tabular-nums; }
 
 .hours { margin: 1.6rem 0 0.2rem; text-align: center; font-weight: 600; }
 .hours:empty { display: none; }
-.updated { margin: 0.2rem 0 0; text-align: center; color: var(--muted); font-size: 0.82rem; }
+.status-updated { color: var(--muted); font-size: 0.78rem; margin-top: 0.15rem; }
+.status-updated:empty { display: none; }
 .foot { display: flex; justify-content: center; margin-top: 2.4rem; }
 button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 
@@ -195,8 +181,8 @@ button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 #btn-save { min-width: 96px; }
 
 /* ---------- login popup ---------- */
-.modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5, 7, 10, 0.6); backdrop-filter: blur(4px); z-index: 10; }
-.authbox { width: 100%; max-width: 360px; background: var(--bg); border: 1px solid var(--line); border-radius: 20px; padding: 1.8rem 1.6rem; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28); }
+.modal { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(61, 42, 30, 0.45); backdrop-filter: blur(4px); z-index: 10; }
+.authbox { width: 100%; max-width: 360px; background: var(--bg); border: 1px solid var(--line); border-radius: 20px; padding: 1.8rem 1.6rem; box-shadow: 0 24px 70px rgba(90, 55, 25, 0.25); }
 .authbox h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.2rem; }
 .authbox .tag { color: var(--dim); margin: 0 0 0.4rem; font-size: 0.9rem; }
 .authbox .row { margin-top: 1rem; }
@@ -213,7 +199,7 @@ button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 .flavors .thumb { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; border: 3px solid var(--line); cursor: zoom-in; margin: -0.35rem 0; }
 .flavors li.sold .thumb { opacity: 0.4; filter: grayscale(1); }
 #viewer { cursor: zoom-out; }
-#viewer img { max-width: 100%; max-height: 86vh; border-radius: 14px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5); }
+#viewer img { max-width: 100%; max-height: 86vh; border-radius: 14px; box-shadow: 0 24px 70px rgba(61, 42, 30, 0.45); }
 
 .photo-row { display: flex; align-items: center; gap: 0.5rem; }
 .photo-row img { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); margin-right: auto; }
@@ -239,3 +225,15 @@ button.scoop.pick:hover { border-color: var(--fg); }
 
 /* toppings: same as flavors, but the dot is a sauce drop */
 .toppings .scoop { border-radius: 50% 0 50% 50%; transform: rotate(-45deg) scale(0.9); }
+
+/* warm cards: a soft caramel shadow instead of dark borders */
+.status, .flavors li:not(.empty), .prices, .card { box-shadow: var(--shadow); }
+.item, input { background: #fffdf9; }
+.lang::before { box-shadow: 0 1px 3px rgba(120, 72, 30, 0.25); }
+
+/* crepes: the dot is a folded crepe (a quarter circle), and items can show a price */
+.crepes .scoop { border-radius: 100% 0 0 0; transform: rotate(45deg) scale(0.95); }
+.flavors .name { flex: 1; min-width: 0; }
+.flavors .pill { margin-left: 0; }
+.flavors .amt { font-weight: 800; color: color-mix(in srgb, var(--accent) 80%, var(--fg)); font-variant-numeric: tabular-nums; }
+.item.flavor > .tagged.money { max-width: 9rem; }

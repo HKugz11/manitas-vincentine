@@ -9,7 +9,7 @@ Live: https://hkugz11.github.io/nubia-ice-cream/
 
 1. Open the site, tap **Soy Nubia / I'm Nubia** at the bottom.
 2. Type her password.
-3. Flip open/closed, mark flavors *Agotado / Sold out*, add, remove or reorder flavors, toppings and prices, then **Guardar / Save**.
+3. Flip open/closed, mark flavors *Agotado / Sold out*, add, remove or reorder flavors, toppings, crepes and prices, then **Guardar / Save**.
 
 She can also tap a flavor's color dot to pick its scoop color, and add photos (📷 on each flavor, plus one big top photo) straight from her phone's camera or gallery. Photos are shrunk in the browser before upload and saved in `photos/`.
 
@@ -19,7 +19,7 @@ Changes show up for everyone in about a minute.
 
 ## How it works
 
-- `data.json` holds everything the page shows: shop name, open, message, hours, top photo, flavors, toppings, prices. Text is stored as `{ "es": ..., "en": ... }`.
+- `data.json` holds everything the page shows: shop name, open, message, hours, top photo, flavors, toppings, crepes (with prices), prices. Text is stored as `{ "es": ..., "en": ... }`.
 - The public page reads `data.json` straight from the GitHub API (so it's fresh within seconds), falling back to the GitHub Pages copy if that fails.
 - Saving = the browser commits a new `data.json` to this repo through the GitHub API.
 - To be allowed to commit, the browser needs a GitHub key. That key is stored in `lock.json`,

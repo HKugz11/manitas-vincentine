@@ -1,6 +1,12 @@
 // All the words on the site, in Spanish and English.
 window.STRINGS = {
   es: {
+    today: 'hoy',
+    yesterday: 'ayer',
+    crepes: 'Crepes',
+    addCrepe: '+ Agregar crepe',
+    crepeEs: 'Crepe (español)',
+    crepeEn: 'In English (opcional)',
     toppings: 'Toppings',
     addTopping: '+ Agregar topping',
     toppingEs: 'Topping (español)',
@@ -67,6 +73,12 @@ window.STRINGS = {
     keyBad: 'La llave de GitHub no funciona. Hay que configurarla otra vez.',
   },
   en: {
+    today: 'today',
+    yesterday: 'yesterday',
+    crepes: 'Crepes',
+    addCrepe: '+ Add crepe',
+    crepeEs: 'Crepe (Spanish)',
+    crepeEn: 'In English (optional)',
     toppings: 'Toppings',
     addTopping: '+ Add topping',
     toppingEs: 'Topping (Spanish)',

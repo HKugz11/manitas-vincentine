@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manitas Vincentine</title>
-  <meta name="description" content="Sabores del día, toppings, precios y horario. Flavors of the day, toppings, prices and hours.">
-  <meta name="theme-color" content="#0e1116">
+  <meta name="description" content="Helados, toppings, crepes, precios y horario. Ice cream, toppings, crepes, prices and hours.">
+  <meta name="theme-color" content="#fbf3e6">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
   <link rel="stylesheet" href="style.css">
@@ -29,6 +29,7 @@
         <div>
           <div id="status-text" class="status-text" data-i18n="loading">Cargando…</div>
           <div id="status-note" class="status-note"></div>
+          <div id="updated" class="status-updated"></div>
         </div>
       </div>
 
@@ -40,13 +41,17 @@
         <ul id="toppings" class="flavors toppings"></ul>
       </div>
 
+      <div id="crepes-wrap" class="hidden">
+        <h2 class="section-title" data-i18n="crepes">Crepes</h2>
+        <ul id="crepes" class="flavors crepes"></ul>
+      </div>
+
       <div id="prices-wrap">
         <h2 class="section-title" data-i18n="prices">Precios</h2>
         <ul id="prices" class="prices"></ul>
       </div>
 
       <p id="hours" class="hours"></p>
-      <p id="updated" class="updated"></p>
       <div class="foot"><button id="btn-nubia" class="ghost small" data-i18n="iamNubia">Soy Nubia</button></div>
     </section>
 
@@ -78,6 +83,12 @@
         <div class="label" data-i18n="toppings"></div>
         <ul id="edit-toppings" class="edit-list toppings"></ul>
         <button type="button" id="add-topping" class="addbtn" data-i18n="addTopping"></button>
+      </div>
+
+      <div class="card">
+        <div class="label" data-i18n="crepes"></div>
+        <ul id="edit-crepes" class="edit-list crepes"></ul>
+        <button type="button" id="add-crepe" class="addbtn" data-i18n="addCrepe"></button>
       </div>
 
       <div class="card">

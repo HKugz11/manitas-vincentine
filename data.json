@@ -76,6 +76,35 @@
       "color": "#7b2d5e"
     }
   ],
+  "crepes": [
+    {
+      "name": {
+        "es": "Crepe de Nutella",
+        "en": "Nutella crepe"
+      },
+      "soldOut": false,
+      "price": "3.00",
+      "color": "#6b4226"
+    },
+    {
+      "name": {
+        "es": "Crepe de frutilla con crema",
+        "en": "Strawberries & cream crepe"
+      },
+      "soldOut": false,
+      "price": "3.50",
+      "color": "#f4a3b5"
+    },
+    {
+      "name": {
+        "es": "Crepe de manjar",
+        "en": "Dulce de leche crepe"
+      },
+      "soldOut": false,
+      "price": "3.00",
+      "color": "#d9a066"
+    }
+  ],
   "currency": "$",
   "prices": [
     {
