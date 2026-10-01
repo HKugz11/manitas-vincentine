@@ -21,13 +21,19 @@
     if (saved === 'es' || saved === 'en') lang = saved;
     else if ((navigator.language || '').toLowerCase().startsWith('en')) lang = 'en';
   } catch { /* storage blocked: keep default */ }
-  const t = (k) => (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.en[k] || k;
+  const t = (k) => (STRINGS[lang] && STRINGS[lang][k]) || STRINGS.es[k] || k;
+
+  // Nubia's own text is stored as { es, en }. English is optional and falls back to Spanish.
+  // (A plain string from an older data.json is treated as Spanish.)
+  const bi = (v) => (v && typeof v === 'object' ? v : { es: v || '', en: '' });
+  const tx = (v) => { const b = bi(v); return (lang === 'en' && b.en.trim()) ? b.en : (b.es || b.en || ''); };
 
   function applyLang() {
     document.documentElement.lang = lang;
     $('lang').dataset.lang = lang;
     document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
     document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
     if (data) renderPublic();
     if (draft) renderEditor();
   }
@@ -59,12 +65,20 @@
   ];
   const PASTELS = ['#f4a3b5', '#a8e6cf', '#f7ecc8', '#b5c7f2', '#f7b267', '#d7b8f3', '#f5e663', '#9ad1d4'];
   function scoopColor(name) {
-    const n = name.toLowerCase();
+    const b = bi(name);
+    const n = `${b.es} ${b.en}`.toLowerCase();
     for (const [re, c] of FLAVOR_COLORS) if (re.test(n)) return c;
     let h = 0;
-    for (const ch of n) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    for (const ch of b.es.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
     return PASTELS[h % PASTELS.length];
   }
+
+  const money = (p) => {
+    const s = String(p || '').trim();
+    if (!s) return '';
+    const num = s.replace(',', '.');
+    return /^\d+(\.\d+)?$/.test(num) ? `${(data && data.currency) || '$'}${Number(num).toFixed(2)}` : s;
+  };
 
   // ---------- loading data ----------
   let data = null;      // what the public page shows
@@ -121,27 +135,37 @@
 
   function renderPublic() {
     const d = draft || data;
-    $('shop-name').textContent = d.shop || '';
-    document.title = d.shop || document.title;
+    $('shop-name').textContent = tx(d.shop);
+    document.title = tx(d.shop) || document.title;
 
     $('status').className = 'status ' + (d.open ? 'open' : 'closed');
     $('status-text').textContent = d.open ? t('open') : t('closed');
-    $('status-note').textContent = d.note || '';
+    $('status-note').textContent = tx(d.note);
 
     const ul = $('flavors');
     ul.replaceChildren();
-    const list = d.flavors || [];
+    const list = (d.flavors || []).filter((f) => tx(f.name).trim());
     if (!list.length) ul.append(el('li', 'empty', t('noFlavors')));
     for (const f of list) {
       const li = el('li', f.soldOut ? 'sold' : '');
       const dot = el('span', 'scoop');
       dot.style.background = scoopColor(f.name);
-      li.append(dot, el('span', 'name', f.name));
+      li.append(dot, el('span', 'name', tx(f.name)));
       if (f.soldOut) li.append(el('span', 'pill', t('soldOut')));
       ul.append(li);
     }
 
-    $('hours').textContent = d.hours || '';
+    const prices = (d.prices || []).filter((p) => tx(p.name).trim());
+    $('prices-wrap').classList.toggle('hidden', !prices.length);
+    const pl = $('prices');
+    pl.replaceChildren();
+    for (const p of prices) {
+      const li = el('li');
+      li.append(el('span', 'name', tx(p.name)), el('span', 'leader'), el('span', 'amt', money(p.price)));
+      pl.append(li);
+    }
+
+    $('hours').textContent = tx(d.hours);
     if (d.updated) {
       const when = new Date(d.updated);
       const loc = lang === 'es' ? 'es-EC' : 'en-US';
@@ -156,82 +180,138 @@
     m.textContent = on ? t('unsaved') : '';
   }
 
+  // An input with a little tag in front of it ("ES", "EN", "$").
+  function tagged(tag, value, ph, onInput, attrs) {
+    const wrap = el('div', 'tagged');
+    const input = el('input');
+    input.value = value || '';
+    input.placeholder = ph || '';
+    input.maxLength = 60;
+    Object.assign(input, attrs || {});
+    input.addEventListener('input', () => { onInput(input.value); renderPublic(); setDirty(true); });
+    wrap.append(el('span', 'tag', tag), input);
+    return wrap;
+  }
+
+  // Two inputs (Spanish + English) for one piece of Nubia's text.
+  function biField(container, key, phEs, phEn) {
+    draft[key] = bi(draft[key]);
+    const obj = draft[key];
+    container.replaceChildren(
+      tagged('ES', obj.es, phEs, (v) => { obj.es = v; }, { maxLength: 120 }),
+      tagged('EN', obj.en, phEn, (v) => { obj.en = v; }, { maxLength: 120 }),
+    );
+  }
+
+  function smallBtn(cls, text, label, fn, disabled) {
+    const b = el('button', cls, text);
+    b.type = 'button';
+    if (label) { b.title = label; b.setAttribute('aria-label', label); }
+    b.disabled = !!disabled;
+    b.addEventListener('click', fn);
+    return b;
+  }
+
+  function move(list, i, dir) {
+    const j = i + dir;
+    [list[i], list[j]] = [list[j], list[i]];
+    structural();
+  }
+
+  function moveBtns(list, i) {
+    return [
+      smallBtn('icon', '↑', t('up'), () => move(list, i, -1), i === 0),
+      smallBtn('icon', '↓', t('down'), () => move(list, i, 1), i === list.length - 1),
+      smallBtn('icon del', '✕', t('remove'), () => { list.splice(i, 1); structural(); }),
+    ];
+  }
+
   function renderEditor() {
     $('edit-open').setAttribute('aria-checked', String(draft.open));
     const lbl = $('edit-open-label');
     lbl.textContent = draft.open ? t('open') : t('closed');
     lbl.className = 'big ' + (draft.open ? 'open' : 'closed');
-    if (document.activeElement !== $('edit-note')) $('edit-note').value = draft.note || '';
-    if (document.activeElement !== $('edit-shop')) $('edit-shop').value = draft.shop || '';
-    if (document.activeElement !== $('edit-hours')) $('edit-hours').value = draft.hours || '';
 
-    const ul = $('edit-flavors');
-    ul.replaceChildren();
+    biField($('edit-note'), 'note', STRINGS.es.messagePh, STRINGS.en.messagePh);
+    biField($('edit-shop'), 'shop', 'Heladería Nubia', 'Nubia’s Ice Cream');
+    biField($('edit-hours'), 'hours', STRINGS.es.hoursPh, STRINGS.en.hoursPh);
+
+    // flavors
+    const fl = $('edit-flavors');
+    fl.replaceChildren();
     draft.flavors.forEach((f, i) => {
-      const li = el('li', f.soldOut ? 'sold' : '');
+      f.name = bi(f.name);
+      const li = el('li', 'item flavor' + (f.soldOut ? ' sold' : ''));
       const dot = el('span', 'scoop');
       dot.style.background = scoopColor(f.name);
-      const btn = (cls, text, label, fn, disabled) => {
-        const b = el('button', cls, text);
-        b.type = 'button';
-        if (label) { b.title = label; b.setAttribute('aria-label', label); }
-        b.disabled = !!disabled;
-        b.addEventListener('click', fn);
-        return b;
-      };
+      const recolor = () => { dot.style.background = scoopColor(f.name); };
+      const actions = el('div', 'actions');
+      actions.append(
+        smallBtn('soldbtn' + (f.soldOut ? ' on' : ''), t('soldOut'), null, () => { f.soldOut = !f.soldOut; structural(); }),
+        el('span', 'grow'),
+        ...moveBtns(draft.flavors, i),
+      );
       li.append(
         dot,
-        el('span', 'name', f.name),
-        btn('soldbtn' + (f.soldOut ? ' on' : ''), t('soldOut'), null, () => { f.soldOut = !f.soldOut; changed(); }),
-        btn('icon', '↑', t('up'), () => { move(i, -1); }, i === 0),
-        btn('icon', '↓', t('down'), () => { move(i, 1); }, i === draft.flavors.length - 1),
-        btn('icon', '✕', t('remove'), () => { draft.flavors.splice(i, 1); changed(); }),
+        tagged('ES', f.name.es, t('flavorEs'), (v) => { f.name.es = v; recolor(); }),
+        tagged('EN', f.name.en, t('flavorEn'), (v) => { f.name.en = v; recolor(); }),
+        actions,
       );
-      ul.append(li);
+      fl.append(li);
+    });
+
+    // prices
+    const pl = $('edit-prices');
+    pl.replaceChildren();
+    draft.prices.forEach((p, i) => {
+      p.name = bi(p.name);
+      const li = el('li', 'item price');
+      const actions = el('div', 'actions');
+      actions.append(...moveBtns(draft.prices, i));
+      li.append(
+        tagged('ES', p.name.es, t('itemEs'), (v) => { p.name.es = v; }),
+        tagged(draft.currency || '$', p.price, t('pricePh'), (v) => { p.price = v.trim(); }, { inputMode: 'decimal', maxLength: 10 }),
+        tagged('EN', p.name.en, t('itemEn'), (v) => { p.name.en = v; }),
+        actions,
+      );
+      pl.append(li);
     });
   }
 
-  function move(i, dir) {
-    const j = i + dir;
-    [draft.flavors[i], draft.flavors[j]] = [draft.flavors[j], draft.flavors[i]];
-    changed();
-  }
-
-  function changed() {
+  function structural() {
     renderEditor();
     renderPublic();
     setDirty(true);
   }
 
-  $('edit-open').addEventListener('click', () => { draft.open = !draft.open; changed(); });
-  for (const [id, key] of [['edit-note', 'note'], ['edit-shop', 'shop'], ['edit-hours', 'hours']]) {
-    $(id).addEventListener('input', (e) => { draft[key] = e.target.value; renderPublic(); setDirty(true); });
+  $('edit-open').addEventListener('click', () => { draft.open = !draft.open; structural(); });
+  function addAndFocus(list, item, listId) {
+    list.push(item);
+    structural();
+    const first = $(listId).lastElementChild.querySelector('input');
+    if (first) first.focus();
   }
-  $('add-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = $('add-name').value.trim();
-    if (!name) return;
-    draft.flavors.push({ name, soldOut: false });
-    $('add-name').value = '';
-    changed();
-  });
+  $('add-flavor').addEventListener('click', () => addAndFocus(draft.flavors, { name: { es: '', en: '' }, soldOut: false }, 'edit-flavors'));
+  $('add-price').addEventListener('click', () => addAndFocus(draft.prices, { name: { es: '', en: '' }, price: '' }, 'edit-prices'));
 
   function startEditing() {
     draft = JSON.parse(JSON.stringify(data));
     draft.flavors = draft.flavors || [];
+    draft.prices = draft.prices || [];
+    draft.currency = draft.currency || '$';
     $('view-public').classList.add('hidden');
-    $('btn-nubia').classList.add('hidden');
     $('view-edit').classList.remove('hidden');
     renderEditor();
     setDirty(false);
+    scrollTo(0, 0);
   }
 
   function stopEditing() {
     draft = null; token = null; demo = false;
     $('view-edit').classList.add('hidden');
     $('view-public').classList.remove('hidden');
-    $('btn-nubia').classList.remove('hidden');
     renderPublic();
+    scrollTo(0, 0);
   }
   $('btn-logout').addEventListener('click', stopEditing);
 
@@ -250,11 +330,21 @@
     sha = (await r.json()).content.sha;
   }
 
+  // Trim text and drop rows she left blank.
+  function cleaned(d) {
+    const out = JSON.parse(JSON.stringify(d));
+    const trimBi = (v) => { const b = bi(v); return { es: b.es.trim(), en: b.en.trim() }; };
+    for (const k of ['shop', 'note', 'hours']) out[k] = trimBi(out[k]);
+    out.flavors = out.flavors.map((f) => ({ ...f, name: trimBi(f.name) })).filter((f) => f.name.es || f.name.en);
+    out.prices = out.prices.map((p) => ({ ...p, name: trimBi(p.name), price: String(p.price || '').trim() })).filter((p) => p.name.es || p.name.en);
+    out.updated = new Date().toISOString();
+    return out;
+  }
+
   $('btn-save').addEventListener('click', async () => {
     const m = $('save-msg');
     const btn = $('btn-save');
-    draft.shop = draft.shop.trim();
-    draft.updated = new Date().toISOString();
+    const body = cleaned(draft);
     btn.disabled = true;
     m.className = 'save-msg';
     m.textContent = t('saving');
@@ -263,15 +353,18 @@
         await new Promise((r) => setTimeout(r, 400));
       } else {
         try {
-          await putData(draft);
+          await putData(body);
         } catch (e) {
           // someone else saved in between (another phone?) - grab the new version number and retry once
           if (e.status !== 409 && e.status !== 422) throw e;
           sha = (await ghGet('data.json')).sha;
-          await putData(draft);
+          await putData(body);
         }
       }
-      data = JSON.parse(JSON.stringify(draft));
+      data = body;
+      draft = JSON.parse(JSON.stringify(body));
+      renderEditor();
+      renderPublic();
       m.className = 'save-msg ok';
       m.textContent = demo ? t('demoSaved') : t('saved');
     } catch (e) {
@@ -283,7 +376,7 @@
     }
   });
 
-  // ---------- "I'm Nubia" login ----------
+  // ---------- "Soy Nubia" login ----------
   const modal = $('login');
   function openLogin() {
     $('login-msg').textContent = '';

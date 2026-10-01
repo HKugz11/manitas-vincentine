@@ -1,14 +1,21 @@
 {
-  "shop": "Nubia's Ice Cream",
+  "shop": { "es": "Heladería Nubia", "en": "Nubia's Ice Cream" },
   "open": true,
-  "note": "Come say hi!",
-  "hours": "Open daily 12pm – 9pm",
+  "note": { "es": "¡Ven a saludar!", "en": "Come say hi!" },
+  "hours": { "es": "Abierto todos los días 12pm – 9pm", "en": "Open daily 12pm – 9pm" },
   "flavors": [
-    { "name": "Vanilla Bean", "soldOut": false },
-    { "name": "Chocolate Fudge", "soldOut": false },
-    { "name": "Strawberry", "soldOut": false },
-    { "name": "Mint Chip", "soldOut": false },
-    { "name": "Cookies & Cream", "soldOut": false }
+    { "name": { "es": "Vainilla", "en": "Vanilla" }, "soldOut": false },
+    { "name": { "es": "Chocolate", "en": "Chocolate" }, "soldOut": false },
+    { "name": { "es": "Frutilla", "en": "Strawberry" }, "soldOut": false },
+    { "name": { "es": "Menta con chispas", "en": "Mint Chip" }, "soldOut": false },
+    { "name": { "es": "Galleta con crema", "en": "Cookies & Cream" }, "soldOut": false }
+  ],
+  "currency": "$",
+  "prices": [
+    { "name": { "es": "1 bola", "en": "1 scoop" }, "price": "1.50" },
+    { "name": { "es": "2 bolas", "en": "2 scoops" }, "price": "2.50" },
+    { "name": { "es": "3 bolas", "en": "3 scoops" }, "price": "3.25" },
+    { "name": { "es": "Batido", "en": "Milkshake" }, "price": "3.50" }
   ],
   "updated": "2026-10-01T12:00:00.000Z"
 }

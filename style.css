@@ -129,6 +129,12 @@ input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in sr
 .pill { margin-left: auto; font-size: 0.72rem; font-weight: 700; color: var(--closed); border: 1px solid currentColor; border-radius: 999px; padding: 0.1rem 0.5rem; white-space: nowrap; }
 .flavors li.empty { justify-content: center; color: var(--dim); background: transparent; border-style: dashed; font-weight: 500; }
 
+.prices { list-style: none; margin: 0; padding: 0.4rem 1rem; background: var(--sel); border: 1px solid var(--line); border-radius: 14px; }
+.prices li { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.45rem 0; font-weight: 600; }
+.prices li + li { border-top: 1px solid var(--line); }
+.prices .leader { flex: 1; }
+.prices .amt { font-weight: 800; color: color-mix(in srgb, var(--accent) 70%, var(--fg)); font-variant-numeric: tabular-nums; }
+
 .hours { margin: 1.6rem 0 0.2rem; text-align: center; font-weight: 600; }
 .hours:empty { display: none; }
 .updated { margin: 0.2rem 0 0; text-align: center; color: var(--muted); font-size: 0.82rem; }
@@ -147,13 +153,36 @@ button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 .toggle[aria-checked="true"] { background: var(--open); }
 .toggle[aria-checked="true"] span { transform: translateX(28px); }
 
-.edit-flavors { list-style: none; margin: 0 0 0.7rem; padding: 0; display: grid; gap: 0.4rem; }
-.edit-flavors li { display: flex; align-items: center; gap: 0.35rem; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 0.35rem 0.4rem 0.35rem 0.6rem; }
-.edit-flavors .name { flex: 1; min-width: 0; font-weight: 650; overflow-wrap: anywhere; }
-.edit-flavors li.sold .name { color: var(--muted); text-decoration: line-through; }
-.edit-flavors button { padding: 0.3rem 0.5rem; font-size: 0.8rem; border-radius: 8px; }
-.edit-flavors button.soldbtn.on { color: var(--closed); border-color: var(--closed); }
-.edit-flavors .icon { width: 30px; padding: 0.3rem 0; }
+.hint { color: var(--dim); font-size: 0.85rem; margin: 0 0 0.9rem; }
+.field.first { margin-top: 0; }
+
+/* input with a small tag in front: ES / EN / $ */
+.tagged { position: relative; min-width: 0; }
+.tagged .tag {
+  position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%);
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.03em; color: var(--dim);
+  background: var(--sel); border: 1px solid var(--line); border-radius: 6px; padding: 0.05rem 0.3rem;
+  pointer-events: none;
+}
+.tagged input { padding-left: 2.6rem; }
+.bi { display: grid; gap: 0.4rem; }
+
+.edit-list { list-style: none; margin: 0 0 0.7rem; padding: 0; display: grid; gap: 0.55rem; }
+.item { display: grid; gap: 0.4rem 0.6rem; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 0.6rem; }
+.item.flavor { grid-template-columns: 22px 1fr; }
+.item.flavor .scoop { grid-row: 1; }
+.item.flavor > .tagged:nth-of-type(2), .item.flavor > .actions { grid-column: 2; }
+.item.flavor.sold > .tagged input { color: var(--muted); text-decoration: line-through; }
+.item.price { grid-template-columns: 1fr 6.8rem; }
+.item.price > .actions { justify-content: flex-end; }
+.actions { display: flex; align-items: center; gap: 0.35rem; }
+.actions .grow { flex: 1; }
+.actions button { padding: 0.3rem 0.55rem; font-size: 0.8rem; border-radius: 8px; }
+.actions .icon { width: 30px; padding: 0.3rem 0; }
+.actions .del:hover { color: var(--closed); border-color: var(--closed); }
+.actions .soldbtn.on { color: var(--closed); border-color: var(--closed); }
+.addbtn { width: 100%; border-style: dashed; color: var(--dim); }
+.addbtn:hover { color: var(--fg); }
 
 .savebar {
   position: sticky; bottom: 12px; display: flex; align-items: center; gap: 0.6rem;
@@ -176,5 +205,4 @@ button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 
 @media (max-width: 420px) {
   .status-text { font-size: 1.4rem; }
-  .edit-flavors .icon { width: 26px; }
 }

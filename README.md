@@ -1,7 +1,7 @@
 # Nubia's Ice Cream
 
-A tiny website for Nubia's ice cream shop: **flavors of the day** and an **open / closed** sign,
-in Spanish and English. Runs free on GitHub Pages: no server, no database.
+A tiny website for Nubia's ice cream shop: **flavors of the day**, **prices** and an **open / closed** sign,
+in Spanish and English (slider at the top). Runs free on GitHub Pages: no server, no database.
 
 Live: https://hkugz11.github.io/nubia-ice-cream/
 
@@ -9,13 +9,15 @@ Live: https://hkugz11.github.io/nubia-ice-cream/
 
 1. Open the site, tap **Soy Nubia / I'm Nubia** at the bottom.
 2. Type her password.
-3. Flip open/closed, mark flavors *Agotado / Sold out*, add, remove or reorder flavors, then **Guardar / Save**.
+3. Flip open/closed, mark flavors *Agotado / Sold out*, add, remove or reorder flavors and prices, then **Guardar / Save**.
+
+Every piece of her text has a Spanish box and an English box. English is optional: if it's blank, the Spanish shows on the English side too.
 
 Changes show up for everyone in about a minute.
 
 ## How it works
 
-- `data.json` holds everything the page shows (shop name, open, message, hours, flavors).
+- `data.json` holds everything the page shows: shop name, open, message, hours, flavors, prices. Text is stored as `{ "es": ..., "en": ... }`.
 - The public page reads `data.json` straight from the GitHub API (so it's fresh within seconds), falling back to the GitHub Pages copy if that fails.
 - Saving = the browser commits a new `data.json` to this repo through the GitHub API.
 - To be allowed to commit, the browser needs a GitHub key. That key is stored in `lock.json`,
