@@ -80,6 +80,51 @@
     return /^\d+(\.\d+)?$/.test(num) ? `${(data && data.currency) || '$'}${Number(num).toFixed(2)}` : s;
   };
 
+  // Colors Nubia can pick for a flavor's scoop (or "Auto" = guessed from the name).
+  const PALETTE = ['#f7ecc8', '#6b4226', '#f4a3b5', '#a8e6cf', '#a47551', '#d9a066', '#f7b267',
+    '#f5e663', '#7b5ea7', '#b5d99c', '#8ecae6', '#c9405b', '#f4f1ea', '#b9b4ab'];
+  const colorOf = (f) => f.color || scoopColor(f.name);
+
+  // ---------- photos ----------
+  // Saved photos live in photos/ in the repo. GitHub Pages can take a minute to publish a
+  // new one, so if it isn't there yet we load it straight from the repo instead.
+  const rawUrl = (p) => `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${p}`;
+  const isNewPhoto = (p) => typeof p === 'string' && p.startsWith('data:');
+  function photoImg(p, cls) {
+    const img = el('img', cls);
+    img.alt = '';
+    img.src = p;
+    if (hasRepo && !isNewPhoto(p)) img.addEventListener('error', () => { img.src = rawUrl(p); }, { once: true });
+    return img;
+  }
+
+  // Opens the phone's camera / gallery picker and shrinks the photo so it loads fast.
+  function pickPhoto(maxSide) {
+    return new Promise((resolve) => {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.addEventListener('change', async () => {
+        const file = input.files && input.files[0];
+        if (!file) return resolve(null);
+        try {
+          const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' });
+          const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+          const c = document.createElement('canvas');
+          c.width = Math.round(bmp.width * scale);
+          c.height = Math.round(bmp.height * scale);
+          c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+          resolve(c.toDataURL('image/jpeg', 0.82));
+        } catch (e) {
+          console.error(e);
+          alert(t('photoFail'));
+          resolve(null);
+        }
+      });
+      input.click();
+    });
+  }
+
   // ---------- loading data ----------
   let data = null;      // what the public page shows
   let draft = null;     // Nubia's edits (null when not editing)
@@ -138,6 +183,15 @@
     $('shop-name').textContent = tx(d.shop);
     document.title = tx(d.shop) || document.title;
 
+    const banner = $('banner');
+    banner.classList.toggle('hidden', !d.banner);
+    if (d.banner && banner.dataset.src !== d.banner) {
+      banner.dataset.src = d.banner;
+      const img = photoImg(d.banner, 'banner-img');
+      img.addEventListener('click', () => openViewer(img.src));
+      banner.replaceChildren(img);
+    }
+
     $('status').className = 'status ' + (d.open ? 'open' : 'closed');
     $('status-text').textContent = d.open ? t('open') : t('closed');
     $('status-note').textContent = tx(d.note);
@@ -148,9 +202,17 @@
     if (!list.length) ul.append(el('li', 'empty', t('noFlavors')));
     for (const f of list) {
       const li = el('li', f.soldOut ? 'sold' : '');
-      const dot = el('span', 'scoop');
-      dot.style.background = scoopColor(f.name);
-      li.append(dot, el('span', 'name', tx(f.name)));
+      if (f.photo) {
+        const img = photoImg(f.photo, 'thumb');
+        img.style.borderColor = colorOf(f);
+        img.addEventListener('click', () => openViewer(img.src));
+        li.append(img);
+      } else {
+        const dot = el('span', 'scoop');
+        dot.style.background = colorOf(f);
+        li.append(dot);
+      }
+      li.append(el('span', 'name', tx(f.name)));
       if (f.soldOut) li.append(el('span', 'pill', t('soldOut')));
       ul.append(li);
     }
@@ -233,8 +295,11 @@
     lbl.className = 'big ' + (draft.open ? 'open' : 'closed');
 
     biField($('edit-note'), 'note', STRINGS.es.messagePh, STRINGS.en.messagePh);
-    biField($('edit-shop'), 'shop', 'Heladería Nubia', 'Nubia’s Ice Cream');
+    biField($('edit-shop'), 'shop', 'Manitas Vincentine', 'Manitas Vincentine');
     biField($('edit-hours'), 'hours', STRINGS.es.hoursPh, STRINGS.en.hoursPh);
+    $('edit-banner').replaceChildren(draft.banner
+      ? photoRow(draft, 'banner', 1600, 'wide')
+      : smallBtn('addbtn', t('addBanner'), null, () => choosePhoto(draft, 'banner', 1600)));
 
     // flavors
     const fl = $('edit-flavors');
@@ -242,12 +307,13 @@
     draft.flavors.forEach((f, i) => {
       f.name = bi(f.name);
       const li = el('li', 'item flavor' + (f.soldOut ? ' sold' : ''));
-      const dot = el('span', 'scoop');
-      dot.style.background = scoopColor(f.name);
-      const recolor = () => { dot.style.background = scoopColor(f.name); };
+      const dot = smallBtn('scoop pick', '', t('pickColor'), () => { openSwatch = openSwatch === f ? null : f; renderEditor(); });
+      dot.style.background = colorOf(f);
+      const recolor = () => { dot.style.background = colorOf(f); };
       const actions = el('div', 'actions');
       actions.append(
         smallBtn('soldbtn' + (f.soldOut ? ' on' : ''), t('soldOut'), null, () => { f.soldOut = !f.soldOut; structural(); }),
+        f.photo ? '' : smallBtn('photobtn', t('photo'), null, () => choosePhoto(f, 'photo', 900)),
         el('span', 'grow'),
         ...moveBtns(draft.flavors, i),
       );
@@ -257,6 +323,8 @@
         tagged('EN', f.name.en, t('flavorEn'), (v) => { f.name.en = v; recolor(); }),
         actions,
       );
+      if (openSwatch === f) li.append(swatches(f));
+      if (f.photo) li.append(photoRow(f, 'photo', 900));
       fl.append(li);
     });
 
@@ -276,6 +344,44 @@
       );
       pl.append(li);
     });
+  }
+
+  let openSwatch = null;  // which flavor's color palette is open
+
+  function swatches(f) {
+    const box = el('div', 'swatches');
+    const pick = (c) => { f.color = c; structural(); };
+    for (const c of PALETTE) {
+      const b = smallBtn('sw' + (f.color === c ? ' on' : ''), '', c, () => pick(c));
+      b.style.background = c;
+      box.append(b);
+    }
+    const custom = el('label', 'sw custom' + (f.color && !PALETTE.includes(f.color) ? ' on' : ''));
+    custom.title = t('customColor');
+    const input = el('input');
+    input.type = 'color';
+    input.value = f.color || '#f4a3b5';
+    input.addEventListener('change', () => pick(input.value));
+    custom.append(input);
+    box.append(custom, smallBtn('auto' + (f.color ? '' : ' on'), t('autoColor'), null, () => pick('')));
+    return box;
+  }
+
+  async function choosePhoto(obj, key, maxSide) {
+    const url = await pickPhoto(maxSide);
+    if (!url) return;
+    obj[key] = url;
+    structural();
+  }
+
+  function photoRow(obj, key, maxSide, cls) {
+    const row = el('div', 'photo-row' + (cls ? ' ' + cls : ''));
+    row.append(
+      photoImg(obj[key], ''),
+      smallBtn('', t('changePhoto'), null, () => choosePhoto(obj, key, maxSide)),
+      smallBtn('del', t('removePhoto'), null, () => { obj[key] = ''; structural(); }),
+    );
+    return row;
   }
 
   function structural() {
@@ -330,6 +436,23 @@
     sha = (await r.json()).content.sha;
   }
 
+  async function uploadPhoto(dataUrl) {
+    const path = `photos/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}.jpg`;
+    const r = await fetch(api(path), {
+      method: 'PUT',
+      headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ message: 'Add photo', content: dataUrl.split(',')[1], branch }),
+    });
+    if (!r.ok) throw Object.assign(new Error(`GitHub ${r.status}`), { status: r.status });
+    return path;
+  }
+
+  // New photos are kept in the page until Save; then each one becomes a file in photos/.
+  async function uploadPending(body) {
+    if (isNewPhoto(body.banner)) body.banner = await uploadPhoto(body.banner);
+    for (const f of body.flavors) if (isNewPhoto(f.photo)) f.photo = await uploadPhoto(f.photo);
+  }
+
   // Trim text and drop rows she left blank.
   function cleaned(d) {
     const out = JSON.parse(JSON.stringify(d));
@@ -352,6 +475,9 @@
       if (demo) {
         await new Promise((r) => setTimeout(r, 400));
       } else {
+        if (isNewPhoto(body.banner) || body.flavors.some((f) => isNewPhoto(f.photo))) m.textContent = t('uploading');
+        await uploadPending(body);
+        m.textContent = t('saving');
         try {
           await putData(body);
         } catch (e) {
@@ -376,6 +502,13 @@
     }
   });
 
+  // ---------- photo viewer ----------
+  function openViewer(src) {
+    $('viewer-img').src = src;
+    $('viewer').classList.remove('hidden');
+  }
+  $('viewer').addEventListener('click', () => $('viewer').classList.add('hidden'));
+
   // ---------- "Soy Nubia" login ----------
   const modal = $('login');
   function openLogin() {
@@ -388,7 +521,11 @@
   $('btn-nubia').addEventListener('click', openLogin);
   $('login-cancel').addEventListener('click', closeLogin);
   modal.addEventListener('click', (e) => { if (e.target === modal) closeLogin(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeLogin(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    if (!modal.classList.contains('hidden')) closeLogin();
+    $('viewer').classList.add('hidden');
+  });
 
   $('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();

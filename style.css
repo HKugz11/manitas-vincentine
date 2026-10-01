@@ -169,15 +169,15 @@ button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 
 .edit-list { list-style: none; margin: 0 0 0.7rem; padding: 0; display: grid; gap: 0.55rem; }
 .item { display: grid; gap: 0.4rem 0.6rem; align-items: center; background: var(--bg); border: 1px solid var(--line); border-radius: 14px; padding: 0.6rem; }
-.item.flavor { grid-template-columns: 22px 1fr; }
-.item.flavor .scoop { grid-row: 1; }
-.item.flavor > .tagged:nth-of-type(2), .item.flavor > .actions { grid-column: 2; }
+.item.flavor { grid-template-columns: 24px 1fr; }
+
+
 .item.flavor.sold > .tagged input { color: var(--muted); text-decoration: line-through; }
 .item.price { grid-template-columns: 1fr 6.8rem; }
 .item.price > .actions { justify-content: flex-end; }
 .actions { display: flex; align-items: center; gap: 0.35rem; }
 .actions .grow { flex: 1; }
-.actions button { padding: 0.3rem 0.55rem; font-size: 0.8rem; border-radius: 8px; }
+.actions button { padding: 0.3rem 0.55rem; font-size: 0.8rem; border-radius: 8px; white-space: nowrap; }
 .actions .icon { width: 30px; padding: 0.3rem 0; }
 .actions .del:hover { color: var(--closed); border-color: var(--closed); }
 .actions .soldbtn.on { color: var(--closed); border-color: var(--closed); }
@@ -206,3 +206,33 @@ button.small { font-size: 0.8rem; padding: 0.35rem 0.85rem; }
 @media (max-width: 420px) {
   .status-text { font-size: 1.4rem; }
 }
+
+/* ---------- photos ---------- */
+.banner { margin: -0.4rem 0 1rem; }
+.banner-img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 18px; border: 1px solid var(--line); cursor: zoom-in; }
+.flavors .thumb { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; flex: 0 0 auto; border: 3px solid var(--line); cursor: zoom-in; margin: -0.35rem 0; }
+.flavors li.sold .thumb { opacity: 0.4; filter: grayscale(1); }
+#viewer { cursor: zoom-out; }
+#viewer img { max-width: 100%; max-height: 86vh; border-radius: 14px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.5); }
+
+.photo-row { display: flex; align-items: center; gap: 0.5rem; }
+.photo-row img { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); margin-right: auto; }
+.photo-row.wide { flex-wrap: wrap; }
+.photo-row.wide img { width: 100%; height: auto; aspect-ratio: 16 / 9; margin: 0 0 0.2rem; }
+.photo-row.wide button { flex: 1; }
+.photo-row button { padding: 0.3rem 0.6rem; font-size: 0.8rem; border-radius: 8px; }
+.photo-row .del:hover { color: var(--closed); border-color: var(--closed); }
+.hint.small { font-size: 0.8rem; margin: -0.1rem 0 0.6rem; }
+
+/* ---------- scoop color picker ---------- */
+button.scoop.pick { width: 24px; height: 24px; padding: 0; border: 2px solid var(--line); cursor: pointer; }
+button.scoop.pick:hover { border-color: var(--fg); }
+.item.flavor > :not(.scoop) { grid-column: 2; }
+.item.flavor > .scoop { grid-row: 1; }
+.swatches { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; padding: 0.3rem 0 0.1rem; }
+.swatches .sw { width: 28px; height: 28px; padding: 0; border-radius: 50%; border: 2px solid var(--line); cursor: pointer; }
+.swatches .sw.on { border-color: var(--fg); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--fg); }
+.swatches .custom { position: relative; overflow: hidden; background: conic-gradient(#f4a3b5, #f5e663, #a8e6cf, #8ecae6, #7b5ea7, #f4a3b5); }
+.swatches .custom input { position: absolute; inset: -8px; opacity: 0; cursor: pointer; width: auto; padding: 0; }
+.swatches .auto { padding: 0.25rem 0.6rem; font-size: 0.78rem; border-radius: 999px; }
+.swatches .auto.on { border-color: var(--fg); }

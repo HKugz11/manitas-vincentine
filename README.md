@@ -1,6 +1,6 @@
-# Nubia's Ice Cream
+# Manitas Vincentine
 
-A tiny website for Nubia's ice cream shop: **flavors of the day**, **prices** and an **open / closed** sign,
+A tiny website for Nubia's ice cream shop, **Manitas Vincentine**: **flavors of the day**, **prices** and an **open / closed** sign,
 in Spanish and English (slider at the top). Runs free on GitHub Pages: no server, no database.
 
 Live: https://hkugz11.github.io/nubia-ice-cream/
@@ -10,6 +10,8 @@ Live: https://hkugz11.github.io/nubia-ice-cream/
 1. Open the site, tap **Soy Nubia / I'm Nubia** at the bottom.
 2. Type her password.
 3. Flip open/closed, mark flavors *Agotado / Sold out*, add, remove or reorder flavors and prices, then **Guardar / Save**.
+
+She can also tap a flavor's color dot to pick its scoop color, and add photos (📷 on each flavor, plus one big top photo) straight from her phone's camera or gallery. Photos are shrunk in the browser before upload and saved in `photos/`.
 
 Every piece of her text has a Spanish box and an English box. English is optional: if it's blank, the Spanish shows on the English side too.
 
@@ -47,6 +49,7 @@ Changes show up for everyone in about a minute.
 | `setup.html` | one-time setup page |
 | `data.json` | today's flavors + open/closed |
 | `lock.json` | encrypted GitHub key |
+| `photos/` | Nubia's uploaded photos (created on first upload) |
 | `icon.svg` / `make_icon.py` | the **Hl** icon and the script that draws it |
 
 ## Try it locally
