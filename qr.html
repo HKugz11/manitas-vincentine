@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Código QR</title>
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#fbf3e6">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .sheet { max-width: 460px; margin: 0 auto; padding: 1.5rem 16px 3rem; text-align: center; }
+    .sheet .logo { width: 64px; height: 64px; border-radius: 16px; }
+    .sheet h1 { font-size: 1.9rem; font-weight: 800; letter-spacing: -0.02em; margin: 0.5rem 0 1.2rem; }
+    .qrbox { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 1.2rem; box-shadow: var(--shadow); }
+    .qrbox svg { display: block; width: 100%; height: auto; }
+    .scan { font-size: 1.25rem; font-weight: 800; margin: 1.2rem 0 0.1rem; }
+    .scan-en { color: var(--dim); margin: 0 0 0.6rem; }
+    .url { color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; margin: 0; }
+    .tools { display: flex; gap: 0.6rem; justify-content: center; margin-top: 1.6rem; flex-wrap: wrap; }
+    .warn { color: var(--closed); font-size: 0.85rem; margin-top: 1rem; }
+    @media print {
+      body { background: #fff; background-image: none; }
+      .noprint { display: none !important; }
+      .sheet { padding-top: 0; }
+      .qrbox { box-shadow: none; border: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <img src="icon.svg" alt="" class="logo">
+    <h1 id="shop">Manitas Vincentine</h1>
+    <div class="qrbox" id="qr" role="img" aria-label="QR"></div>
+    <p class="scan">Escanea para ver los sabores del día</p>
+    <p class="scan-en">Scan for today's flavors</p>
+    <p class="url" id="url"></p>
+    <div class="tools noprint">
+      <button type="button" id="print" class="primary">🖨 Imprimir / Print</button>
+      <button type="button" id="png">⬇ Descargar PNG</button>
+    </div>
+    <p class="warn noprint hidden" id="warn">Esto apunta a tu computadora (localhost). Abre esta página en el sitio publicado para el QR de verdad.<br>This points to your own computer. Open this page on the live site for the real QR.</p>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+    // The site's own address (the folder this page is in), unless ?url= says otherwise.
+    const given = new URLSearchParams(location.search).get('url');
+    const target = given || new URL('./', location.href).href;
+    $('url').textContent = target.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    if (/^(https?:\/\/)?(localhost|127\.0\.0\.1)/.test(target) || location.protocol === 'file:') $('warn').classList.remove('hidden');
+
+    fetch('data.json?t=' + Date.now()).then((r) => r.json()).then((d) => {
+      const name = d.shop && (typeof d.shop === 'object' ? (d.shop.es || d.shop.en) : d.shop);
+      if (name) { $('shop').textContent = name; document.title = `QR · ${name}`; }
+    }).catch(() => {});
+
+    // High error correction so the logo in the middle doesn't stop it from scanning.
+    const qr = qrcode(0, 'H');
+    qr.addData(target);
+    qr.make();
+    const n = qr.getModuleCount();
+    const quiet = 3;                       // blank border, in modules
+    const size = n + quiet * 2;
+    const logo = Math.round(n * 0.22);     // logo size, in modules (keeps well under the 30% H can repair)
+    const lo = Math.floor((size - logo) / 2);
+    const INK = '#3d2a1e';
+
+    // Draw the modules as one SVG path, skipping the square under the logo.
+    let d = '';
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (!qr.isDark(r, c)) continue;
+        const x = c + quiet, y = r + quiet;
+        if (x >= lo - 1 && x < lo + logo + 1 && y >= lo - 1 && y < lo + logo + 1) continue;
+        d += `M${x} ${y}h1v1h-1z`;
+      }
+    }
+    $('qr').innerHTML =
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" shape-rendering="crispEdges">` +
+      `<rect width="${size}" height="${size}" fill="#fff"/>` +
+      `<path d="${d}" fill="${INK}"/>` +
+      `<image href="icon.svg" x="${lo}" y="${lo}" width="${logo}" height="${logo}"/>` +
+      `</svg>`;
+
+    $('print').addEventListener('click', () => window.print());
+
+    // PNG for sharing on WhatsApp / Instagram or sending to a print shop.
+    $('png').addEventListener('click', async () => {
+      const scale = 24;
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size * scale;
+      const g = canvas.getContext('2d');
+      g.fillStyle = '#fff';
+      g.fillRect(0, 0, canvas.width, canvas.height);
+      g.fillStyle = INK;
+      g.fill(new Path2D(d.replace(/([MhvH])(-?\d+)(?: (-?\d+))?/g, (m, cmd, a, b) => cmd + a * scale + (b !== undefined ? ' ' + b * scale : ''))));
+      const img = new Image();
+      img.src = 'icon.svg';
+      await img.decode().catch(() => {});
+      try { g.drawImage(img, lo * scale, lo * scale, logo * scale, logo * scale); } catch {}
+      const a = document.createElement('a');
+      a.download = 'codigo-qr.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+  })();
+  </script>
+</body>
+</html>

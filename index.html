@@ -51,6 +51,12 @@
         <ul id="prices" class="prices"></ul>
       </div>
 
+      <div id="reviews-wrap" class="hidden">
+        <h2 class="section-title" data-i18n="reviews">Reseñas</h2>
+        <ul id="reviews" class="reviews"></ul>
+        <a id="review-link" class="review-link hidden" target="_blank" rel="noopener noreferrer" data-i18n="leaveReview">Deja tu reseña</a>
+      </div>
+
       <p id="hours" class="hours"></p>
       <div class="foot"><button id="btn-nubia" class="ghost small" data-i18n="iamNubia">Soy Nubia</button></div>
     </section>
@@ -95,6 +101,23 @@
         <div class="label" data-i18n="prices"></div>
         <ul id="edit-prices" class="edit-list"></ul>
         <button type="button" id="add-price" class="addbtn" data-i18n="addPrice"></button>
+      </div>
+
+      <div class="card">
+        <div class="label" data-i18n="reviews"></div>
+        <p class="hint small" data-i18n="reviewHint"></p>
+        <ul id="edit-reviews" class="edit-list"></ul>
+        <button type="button" id="add-review" class="addbtn" data-i18n="addReview"></button>
+        <div class="field">
+          <label data-i18n="reviewLinkLabel"></label>
+          <div id="edit-review-link"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label" data-i18n="qrCard"></div>
+        <p class="hint small" data-i18n="qrHint"></p>
+        <button type="button" id="open-qr" class="addbtn" data-i18n="qrOpen"></button>
       </div>
 
       <div class="card">

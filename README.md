@@ -17,6 +17,10 @@ Every piece of her text has a Spanish box and an English box. English is optiona
 
 Changes show up for everyone in about a minute.
 
+**Reviews:** the site can't take posts from strangers (no server, and nobody to moderate spam), so Nubia adds real reviews her customers gave her: name, stars and what they said. She can also paste a link (Google Maps, WhatsApp, Instagram) and a "Deja tu reseña" button appears for customers. Only real reviews, please.
+
+**QR code:** `qr.html` (button in the editor) makes a QR code that points at the site's own address, with the Hl icon in the middle. Print it or download a PNG. Opened on localhost it warns that the code points at your computer; use it on the live site.
+
 ## How it works
 
 - `data.json` holds everything the page shows: shop name, open, message, hours, top photo, flavors, toppings, crepes (with prices), prices. Text is stored as `{ "es": ..., "en": ... }`.
@@ -47,6 +51,7 @@ Changes show up for everyone in about a minute.
 | `i18n.js` | all text in Spanish + English |
 | `crypto.js` | password lock for the GitHub key |
 | `setup.html` | one-time setup page |
+| `qr.html` | printable QR code for the site |
 | `data.json` | today's flavors + open/closed |
 | `lock.json` | encrypted GitHub key |
 | `photos/` | Nubia's uploaded photos (created on first upload) |
