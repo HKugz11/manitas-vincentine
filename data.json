@@ -12,6 +12,7 @@
     "es": "Abierto todos los días 12pm – 9pm",
     "en": "Open daily 12pm – 9pm"
   },
+  "banner": "",
   "flavors": [
     {
       "name": {
@@ -49,6 +50,32 @@
       "soldOut": false
     }
   ],
+  "toppings": [
+    {
+      "name": {
+        "es": "Chocolate",
+        "en": "Chocolate"
+      },
+      "soldOut": false,
+      "color": "#6b4226"
+    },
+    {
+      "name": {
+        "es": "Salsa de frutilla",
+        "en": "Strawberry sauce"
+      },
+      "soldOut": false,
+      "color": "#e05a7a"
+    },
+    {
+      "name": {
+        "es": "Salsa de mora",
+        "en": "Mora sauce"
+      },
+      "soldOut": false,
+      "color": "#7b2d5e"
+    }
+  ],
   "currency": "$",
   "prices": [
     {
@@ -80,6 +107,5 @@
       "price": "3.50"
     }
   ],
-  "updated": "2026-10-01T12:00:00.000Z",
-  "banner": ""
+  "updated": "2026-10-01T12:00:00.000Z"
 }

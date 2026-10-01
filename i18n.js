@@ -1,6 +1,10 @@
 // All the words on the site, in Spanish and English.
 window.STRINGS = {
   es: {
+    toppings: 'Toppings',
+    addTopping: '+ Agregar topping',
+    toppingEs: 'Topping (español)',
+    toppingEn: 'In English (opcional)',
     photo: '📷 Foto',
     changePhoto: 'Cambiar',
     removePhoto: 'Quitar foto',
@@ -63,6 +67,10 @@ window.STRINGS = {
     keyBad: 'La llave de GitHub no funciona. Hay que configurarla otra vez.',
   },
   en: {
+    toppings: 'Toppings',
+    addTopping: '+ Add topping',
+    toppingEs: 'Topping (Spanish)',
+    toppingEn: 'In English (optional)',
     photo: '📷 Photo',
     changePhoto: 'Change',
     removePhoto: 'Remove photo',

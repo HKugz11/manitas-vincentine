@@ -236,3 +236,6 @@ button.scoop.pick:hover { border-color: var(--fg); }
 .swatches .custom input { position: absolute; inset: -8px; opacity: 0; cursor: pointer; width: auto; padding: 0; }
 .swatches .auto { padding: 0.25rem 0.6rem; font-size: 0.78rem; border-radius: 999px; }
 .swatches .auto.on { border-color: var(--fg); }
+
+/* toppings: same as flavors, but the dot is a sauce drop */
+.toppings .scoop { border-radius: 50% 0 50% 50%; transform: rotate(-45deg) scale(0.9); }

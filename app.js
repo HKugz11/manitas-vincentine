@@ -178,6 +178,29 @@
     return e;
   }
 
+  // Flavors and toppings share one look: color dot (or photo), name, sold-out tag.
+  function renderScoops(ul, items, emptyText) {
+    ul.replaceChildren();
+    const list = (items || []).filter((f) => tx(f.name).trim());
+    if (!list.length && emptyText) ul.append(el('li', 'empty', emptyText));
+    for (const f of list) {
+      const li = el('li', f.soldOut ? 'sold' : '');
+      if (f.photo) {
+        const img = photoImg(f.photo, 'thumb');
+        img.style.borderColor = colorOf(f);
+        img.addEventListener('click', () => openViewer(img.src));
+        li.append(img);
+      } else {
+        const dot = el('span', 'scoop');
+        dot.style.background = colorOf(f);
+        li.append(dot);
+      }
+      li.append(el('span', 'name', tx(f.name)));
+      if (f.soldOut) li.append(el('span', 'pill', t('soldOut')));
+      ul.append(li);
+    }
+  }
+
   function renderPublic() {
     const d = draft || data;
     $('shop-name').textContent = tx(d.shop);
@@ -196,26 +219,10 @@
     $('status-text').textContent = d.open ? t('open') : t('closed');
     $('status-note').textContent = tx(d.note);
 
-    const ul = $('flavors');
-    ul.replaceChildren();
-    const list = (d.flavors || []).filter((f) => tx(f.name).trim());
-    if (!list.length) ul.append(el('li', 'empty', t('noFlavors')));
-    for (const f of list) {
-      const li = el('li', f.soldOut ? 'sold' : '');
-      if (f.photo) {
-        const img = photoImg(f.photo, 'thumb');
-        img.style.borderColor = colorOf(f);
-        img.addEventListener('click', () => openViewer(img.src));
-        li.append(img);
-      } else {
-        const dot = el('span', 'scoop');
-        dot.style.background = colorOf(f);
-        li.append(dot);
-      }
-      li.append(el('span', 'name', tx(f.name)));
-      if (f.soldOut) li.append(el('span', 'pill', t('soldOut')));
-      ul.append(li);
-    }
+    renderScoops($('flavors'), d.flavors, t('noFlavors'));
+    const tops = (d.toppings || []).filter((f) => tx(f.name).trim());
+    $('toppings-wrap').classList.toggle('hidden', !tops.length);
+    renderScoops($('toppings'), tops, '');
 
     const prices = (d.prices || []).filter((p) => tx(p.name).trim());
     $('prices-wrap').classList.toggle('hidden', !prices.length);
@@ -288,6 +295,34 @@
     ];
   }
 
+  // Editor rows for flavors and toppings: color dot, ES/EN names, sold out, photo, reorder.
+  function renderScoopEditor(ul, list, phEs, phEn) {
+    ul.replaceChildren();
+    list.forEach((f, i) => {
+      f.name = bi(f.name);
+      const li = el('li', 'item flavor' + (f.soldOut ? ' sold' : ''));
+      const dot = smallBtn('scoop pick', '', t('pickColor'), () => { openSwatch = openSwatch === f ? null : f; renderEditor(); });
+      dot.style.background = colorOf(f);
+      const recolor = () => { dot.style.background = colorOf(f); };
+      const actions = el('div', 'actions');
+      actions.append(
+        smallBtn('soldbtn' + (f.soldOut ? ' on' : ''), t('soldOut'), null, () => { f.soldOut = !f.soldOut; structural(); }),
+        f.photo ? '' : smallBtn('photobtn', t('photo'), null, () => choosePhoto(f, 'photo', 900)),
+        el('span', 'grow'),
+        ...moveBtns(list, i),
+      );
+      li.append(
+        dot,
+        tagged('ES', f.name.es, t(phEs), (v) => { f.name.es = v; recolor(); }),
+        tagged('EN', f.name.en, t(phEn), (v) => { f.name.en = v; recolor(); }),
+        actions,
+      );
+      if (openSwatch === f) li.append(swatches(f));
+      if (f.photo) li.append(photoRow(f, 'photo', 900));
+      ul.append(li);
+    });
+  }
+
   function renderEditor() {
     $('edit-open').setAttribute('aria-checked', String(draft.open));
     const lbl = $('edit-open-label');
@@ -301,32 +336,8 @@
       ? photoRow(draft, 'banner', 1600, 'wide')
       : smallBtn('addbtn', t('addBanner'), null, () => choosePhoto(draft, 'banner', 1600)));
 
-    // flavors
-    const fl = $('edit-flavors');
-    fl.replaceChildren();
-    draft.flavors.forEach((f, i) => {
-      f.name = bi(f.name);
-      const li = el('li', 'item flavor' + (f.soldOut ? ' sold' : ''));
-      const dot = smallBtn('scoop pick', '', t('pickColor'), () => { openSwatch = openSwatch === f ? null : f; renderEditor(); });
-      dot.style.background = colorOf(f);
-      const recolor = () => { dot.style.background = colorOf(f); };
-      const actions = el('div', 'actions');
-      actions.append(
-        smallBtn('soldbtn' + (f.soldOut ? ' on' : ''), t('soldOut'), null, () => { f.soldOut = !f.soldOut; structural(); }),
-        f.photo ? '' : smallBtn('photobtn', t('photo'), null, () => choosePhoto(f, 'photo', 900)),
-        el('span', 'grow'),
-        ...moveBtns(draft.flavors, i),
-      );
-      li.append(
-        dot,
-        tagged('ES', f.name.es, t('flavorEs'), (v) => { f.name.es = v; recolor(); }),
-        tagged('EN', f.name.en, t('flavorEn'), (v) => { f.name.en = v; recolor(); }),
-        actions,
-      );
-      if (openSwatch === f) li.append(swatches(f));
-      if (f.photo) li.append(photoRow(f, 'photo', 900));
-      fl.append(li);
-    });
+    renderScoopEditor($('edit-flavors'), draft.flavors, 'flavorEs', 'flavorEn');
+    renderScoopEditor($('edit-toppings'), draft.toppings, 'toppingEs', 'toppingEn');
 
     // prices
     const pl = $('edit-prices');
@@ -346,7 +357,7 @@
     });
   }
 
-  let openSwatch = null;  // which flavor's color palette is open
+  let openSwatch = null;  // which flavor/topping has its color palette open
 
   function swatches(f) {
     const box = el('div', 'swatches');
@@ -398,11 +409,13 @@
     if (first) first.focus();
   }
   $('add-flavor').addEventListener('click', () => addAndFocus(draft.flavors, { name: { es: '', en: '' }, soldOut: false }, 'edit-flavors'));
+  $('add-topping').addEventListener('click', () => addAndFocus(draft.toppings, { name: { es: '', en: '' }, soldOut: false }, 'edit-toppings'));
   $('add-price').addEventListener('click', () => addAndFocus(draft.prices, { name: { es: '', en: '' }, price: '' }, 'edit-prices'));
 
   function startEditing() {
     draft = JSON.parse(JSON.stringify(data));
     draft.flavors = draft.flavors || [];
+    draft.toppings = draft.toppings || [];
     draft.prices = draft.prices || [];
     draft.currency = draft.currency || '$';
     $('view-public').classList.add('hidden');
@@ -450,7 +463,7 @@
   // New photos are kept in the page until Save; then each one becomes a file in photos/.
   async function uploadPending(body) {
     if (isNewPhoto(body.banner)) body.banner = await uploadPhoto(body.banner);
-    for (const f of body.flavors) if (isNewPhoto(f.photo)) f.photo = await uploadPhoto(f.photo);
+    for (const f of [...body.flavors, ...body.toppings]) if (isNewPhoto(f.photo)) f.photo = await uploadPhoto(f.photo);
   }
 
   // Trim text and drop rows she left blank.
@@ -458,7 +471,9 @@
     const out = JSON.parse(JSON.stringify(d));
     const trimBi = (v) => { const b = bi(v); return { es: b.es.trim(), en: b.en.trim() }; };
     for (const k of ['shop', 'note', 'hours']) out[k] = trimBi(out[k]);
-    out.flavors = out.flavors.map((f) => ({ ...f, name: trimBi(f.name) })).filter((f) => f.name.es || f.name.en);
+    const named = (list) => list.map((f) => ({ ...f, name: trimBi(f.name) })).filter((f) => f.name.es || f.name.en);
+    out.flavors = named(out.flavors);
+    out.toppings = named(out.toppings || []);
     out.prices = out.prices.map((p) => ({ ...p, name: trimBi(p.name), price: String(p.price || '').trim() })).filter((p) => p.name.es || p.name.en);
     out.updated = new Date().toISOString();
     return out;
@@ -475,7 +490,7 @@
       if (demo) {
         await new Promise((r) => setTimeout(r, 400));
       } else {
-        if (isNewPhoto(body.banner) || body.flavors.some((f) => isNewPhoto(f.photo))) m.textContent = t('uploading');
+        if (isNewPhoto(body.banner) || [...body.flavors, ...body.toppings].some((f) => isNewPhoto(f.photo))) m.textContent = t('uploading');
         await uploadPending(body);
         m.textContent = t('saving');
         try {
