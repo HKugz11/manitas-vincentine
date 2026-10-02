@@ -1,1 +1,8 @@
-{ "setup": false }
+{
+  "setup": true,
+  "v": 1,
+  "iter": 600000,
+  "salt": "Cmn/TYDl1jXmzWfOyu5XOA==",
+  "iv": "Ime2x140YBbQiMB6",
+  "ct": "EJ1/esxdjhD4y4gARZ1kJ0m6TqpU6lLzmCaReTJ7Wa7qsLJY+r2fjumppIHCpr9n5zqr+ECc0HC8oTpwQ41RXztaT7Z9JZ2HhjTH0rYNWXWLeYTx9vLllX3tN6c4PnAMt4I6GSIOarfif6zBSg=="
+}
