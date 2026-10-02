@@ -70,11 +70,11 @@ button.ghost { border-radius: 999px; font-weight: 600; color: var(--dim); }
 button.ghost:hover { color: var(--fg); }
 button:disabled { opacity: 0.45; cursor: default; }
 
-input, textarea {
+input {
   width: 100%; font: inherit; font-size: 16px; color: var(--fg); background: var(--bg);
   border: 1px solid var(--line); border-radius: 10px; padding: 0.62rem 0.8rem; outline: none;
 }
-input:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 
 .row { display: flex; gap: 0.5rem; align-items: center; }
 .row.between { justify-content: space-between; }
@@ -228,7 +228,7 @@ button.scoop.pick:hover { border-color: var(--fg); }
 
 /* warm cards: a soft caramel shadow instead of dark borders */
 .status, .flavors li:not(.empty), .prices, .card { box-shadow: var(--shadow); }
-.item, input, textarea { background: #fffdf9; }
+.item, input { background: #fffdf9; }
 .lang::before { box-shadow: 0 1px 3px rgba(120, 72, 30, 0.25); }
 
 /* crepes: the dot is a folded crepe (a quarter circle), and items can show a price */
@@ -238,20 +238,11 @@ button.scoop.pick:hover { border-color: var(--fg); }
 .flavors .amt { font-weight: 800; color: color-mix(in srgb, var(--accent) 80%, var(--fg)); font-variant-numeric: tabular-nums; }
 .item.flavor > .tagged.money { max-width: 9rem; }
 
-/* ---------- reviews ---------- */
-textarea { resize: vertical; min-height: 4.5rem; line-height: 1.4; }
-.reviews { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.6rem; }
-.review { background: var(--sel); border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1rem; box-shadow: var(--shadow); }
-.review .stars { color: var(--accent); letter-spacing: 0.08em; font-size: 1.05rem; }
-.review .quote { margin: 0.35rem 0 0.4rem; font-size: 1rem; line-height: 1.45; white-space: pre-line; }
-.review .who { color: var(--dim); font-weight: 600; font-size: 0.88rem; }
-.review-link {
-  display: block; text-align: center; margin-top: 0.7rem; padding: 0.7rem; border-radius: 12px;
-  border: 1px dashed color-mix(in srgb, var(--accent) 60%, var(--line)); color: var(--accent);
-  font-weight: 700; text-decoration: none;
+/* ---------- socials ---------- */
+.socials { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.5rem; }
+.social {
+  display: block; text-align: center; padding: 0.75rem 0.6rem; border-radius: 14px;
+  background: var(--sel); border: 1px solid var(--line); box-shadow: var(--shadow);
+  color: var(--fg); font-weight: 700; text-decoration: none;
 }
-.review-link:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.item.review-edit { grid-template-columns: 1fr; }
-.starpick { display: flex; gap: 0.1rem; }
-.actions .starpick .star { border: none; padding: 0.1rem 0.15rem; font-size: 1.25rem; line-height: 1; color: var(--line); background: none; }
-.actions .starpick .star.on { color: var(--accent); }
+.social:hover { border-color: var(--accent); color: var(--accent); }

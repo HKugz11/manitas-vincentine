@@ -136,7 +136,12 @@
       "price": "3.50"
     }
   ],
-  "reviews": [],
-  "reviewLink": "",
+  "socials": {
+    "instagram": "",
+    "facebook": "",
+    "tiktok": "",
+    "whatsapp": "",
+    "google": ""
+  },
   "updated": "2026-10-01T23:20:10.000Z"
 }

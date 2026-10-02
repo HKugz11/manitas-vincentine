@@ -3,7 +3,7 @@
 A tiny website for Nubia's ice cream shop, **Manitas Vincentine**: **flavors of the day**, **toppings**, **prices** and an **open / closed** sign,
 in Spanish and English (slider at the top). Runs free on GitHub Pages: no server, no database.
 
-Live: https://hkugz11.github.io/nubia-ice-cream/
+Live: https://hkugz11.github.io/manitas-vincentine/
 
 ## How Nubia updates it
 
@@ -17,7 +17,7 @@ Every piece of her text has a Spanish box and an English box. English is optiona
 
 Changes show up for everyone in about a minute.
 
-**Reviews:** the site can't take posts from strangers (no server, and nobody to moderate spam), so Nubia adds real reviews her customers gave her: name, stars and what they said. She can also paste a link (Google Maps, WhatsApp, Instagram) and a "Deja tu reseña" button appears for customers. Only real reviews, please.
+**Reviews / socials:** Nubia types her Instagram, Facebook, TikTok, WhatsApp and Google Maps (`@user`, a phone number, or a full link) and the site shows "¿Te gustó? ¡Déjanos tu reseña!" with a button for each one she filled in, so people review her there. Ecuador numbers like `099 123 4567` become `wa.me/593991234567`.
 
 **QR code:** `qr.html` (button in the editor) makes a QR code that points at the site's own address, with the Hl icon in the middle. Print it or download a PNG. Opened on localhost it warns that the code points at your computer; use it on the live site.
 
@@ -38,9 +38,9 @@ Changes show up for everyone in about a minute.
 ## One-time setup (Hyrum)
 
 1. GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate new token.
-   - Repository access: **Only select repositories** → `nubia-ice-cream`
+   - Repository access: **Only select repositories** → `manitas-vincentine`
    - Permissions → Repository → **Contents: Read and write** (nothing else)
-2. Open `https://hkugz11.github.io/nubia-ice-cream/setup.html`, paste the key, choose Nubia's password, **Lock & save**.
+2. Open `https://hkugz11.github.io/manitas-vincentine/setup.html`, paste the key, choose Nubia's password, **Lock & save**.
 3. Tell Nubia the password. To change it or replace an expired key, do step 1–2 again.
 
 ## Files

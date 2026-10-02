@@ -90,7 +90,27 @@
       return (url.protocol === 'https:' || url.protocol === 'http:') ? url.href : '';
     } catch { return ''; }
   }
-  const starText = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+
+  // Nubia's social links. She can type @user, a phone number, or paste a full link.
+  const SOCIALS = [
+    { key: 'instagram', label: '📸 Instagram', tag: 'IG', ph: '@usuario', url: (h) => `https://instagram.com/${h}` },
+    { key: 'facebook', label: '👍 Facebook', tag: 'FB', ph: '@usuario', url: (h) => `https://facebook.com/${h}` },
+    { key: 'tiktok', label: '🎵 TikTok', tag: 'TT', ph: '@usuario', url: (h) => `https://www.tiktok.com/@${h}` },
+    { key: 'whatsapp', label: '💬 WhatsApp', tag: 'WA', ph: '099 123 4567', url: null },
+    { key: 'google', label: '📍 Google Maps', tag: '📍', ph: 'https://maps.app.goo.gl/…', url: null },
+  ];
+  function socialLink(s, value) {
+    const v = String(value || '').trim();
+    if (!v) return '';
+    if (/^https?:\/\//i.test(v) || /\.(com|gl|app|me|page)\b/i.test(v)) return safeLink(v);
+    if (s.key === 'whatsapp') {
+      let digits = v.replace(/\D/g, '');
+      if (digits.length === 10 && digits.startsWith('0')) digits = '593' + digits.slice(1);  // Ecuador 09x → +593 9x
+      return digits.length >= 8 ? `https://wa.me/${digits}` : '';
+    }
+    const handle = v.replace(/^@/, '');
+    return s.url && /^[\w.-]{1,40}$/.test(handle) ? s.url(handle) : '';
+  }
 
   // Colors Nubia can pick for a flavor's scoop (or "Auto" = guessed from the name).
   const PALETTE = ['#f7ecc8', '#6b4226', '#f4a3b5', '#a8e6cf', '#a47551', '#d9a066', '#f7b267',
@@ -264,22 +284,18 @@
       pl.append(li);
     }
 
-    const reviews = (d.reviews || []).filter((r) => (r.text || '').trim());
-    const link = safeLink(d.reviewLink);
-    $('reviews-wrap').classList.toggle('hidden', !reviews.length && !link);
-    const rl = $('reviews');
-    rl.replaceChildren();
-    for (const r of reviews) {
-      const n = Math.min(5, Math.max(1, r.stars || 5));
-      const li = el('li', 'review');
-      const stars = el('div', 'stars', starText(n));
-      stars.setAttribute('aria-label', `${n}/5`);
-      li.append(stars, el('p', 'quote', r.text), el('div', 'who', `— ${(r.name || '').trim() || t('anonymous')}`));
-      rl.append(li);
+    const box = $('socials');
+    box.replaceChildren();
+    for (const s of SOCIALS) {
+      const href = socialLink(s, (d.socials || {})[s.key]);
+      if (!href) continue;
+      const a = el('a', 'social', s.label);
+      a.href = href;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      box.append(a);
     }
-    const lb = $('review-link');
-    lb.classList.toggle('hidden', !link);
-    if (link) lb.href = link;
+    $('socials-wrap').classList.toggle('hidden', !box.children.length);
 
     $('hours').textContent = tx(d.hours);
     $('updated').textContent = d.updated ? `${t('updated')} ${whenText(new Date(d.updated))}` : '';
@@ -403,28 +419,10 @@
       pl.append(li);
     });
 
-    // reviews
-    const rv = $('edit-reviews');
-    rv.replaceChildren();
-    draft.reviews.forEach((r, i) => {
-      const li = el('li', 'item review-edit');
-      const stars = el('div', 'starpick');
-      for (let n = 1; n <= 5; n++) {
-        stars.append(smallBtn('star' + (n <= (r.stars || 5) ? ' on' : ''), '★', `${n}/5`, () => { r.stars = n; structural(); }));
-      }
-      const text = el('textarea');
-      text.value = r.text || '';
-      text.placeholder = t('reviewText');
-      text.maxLength = 400;
-      text.rows = 3;
-      text.addEventListener('input', () => { r.text = text.value; renderPublic(); setDirty(true); });
-      const actions = el('div', 'actions');
-      actions.append(stars, el('span', 'grow'), ...moveBtns(draft.reviews, i));
-      li.append(tagged('👤', r.name, t('reviewName'), (v) => { r.name = v; }), text, actions);
-      rv.append(li);
-    });
-    $('edit-review-link').replaceChildren(
-      tagged('🔗', draft.reviewLink, 'https://…', (v) => { draft.reviewLink = v; }, { maxLength: 300, inputMode: 'url' }));
+    // social links
+    $('edit-socials').replaceChildren(...SOCIALS.map((s) =>
+      tagged(s.tag, draft.socials[s.key], s.ph, (v) => { draft.socials[s.key] = v; },
+        { maxLength: 300, inputMode: s.key === 'whatsapp' ? 'tel' : 'url', autocapitalize: 'off', spellcheck: false })));
   }
 
   let openSwatch = null;  // which flavor/topping/crepe has its color palette open
@@ -481,7 +479,6 @@
   $('add-flavor').addEventListener('click', () => addAndFocus(draft.flavors, { name: { es: '', en: '' }, soldOut: false }, 'edit-flavors'));
   $('add-topping').addEventListener('click', () => addAndFocus(draft.toppings, { name: { es: '', en: '' }, soldOut: false }, 'edit-toppings'));
   $('add-crepe').addEventListener('click', () => addAndFocus(draft.crepes, { name: { es: '', en: '' }, soldOut: false, price: '' }, 'edit-crepes'));
-  $('add-review').addEventListener('click', () => addAndFocus(draft.reviews, { name: '', stars: 5, text: '' }, 'edit-reviews'));
   $('open-qr').addEventListener('click', () => window.open('qr.html', '_blank', 'noopener'));
   $('add-price').addEventListener('click', () => addAndFocus(draft.prices, { name: { es: '', en: '' }, price: '' }, 'edit-prices'));
 
@@ -490,8 +487,7 @@
     draft.flavors = draft.flavors || [];
     draft.toppings = draft.toppings || [];
     draft.crepes = draft.crepes || [];
-    draft.reviews = draft.reviews || [];
-    draft.reviewLink = draft.reviewLink || '';
+    draft.socials = { ...(draft.socials || {}) };
     draft.prices = draft.prices || [];
     draft.currency = draft.currency || '$';
     $('view-public').classList.add('hidden');
@@ -551,10 +547,7 @@
     out.flavors = named(out.flavors);
     out.toppings = named(out.toppings || []);
     out.crepes = named(out.crepes || []).map((f) => ({ ...f, price: String(f.price || '').trim() }));
-    out.reviews = (out.reviews || [])
-      .map((r) => ({ name: String(r.name || '').trim(), stars: r.stars || 5, text: String(r.text || '').trim() }))
-      .filter((r) => r.text);
-    out.reviewLink = safeLink(out.reviewLink);
+    out.socials = Object.fromEntries(SOCIALS.map((s) => [s.key, String((out.socials || {})[s.key] || '').trim()]));
     out.prices = out.prices.map((p) => ({ ...p, name: trimBi(p.name), price: String(p.price || '').trim() })).filter((p) => p.name.es || p.name.en);
     out.updated = new Date().toISOString();
     return out;
