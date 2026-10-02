@@ -5,13 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manitas Vincentine</title>
   <meta name="description" content="Helados, toppings, crepes, precios y horario. Ice cream, toppings, crepes, prices and hours.">
-  <meta name="theme-color" content="#fbf3e6">
+  <meta name="theme-color" content="#f7e3a3">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Nunito:wght@400;600;700;800&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="wrap">
+  <div class="band">
     <header class="top">
       <div class="brand"><img src="icon.svg" alt="" class="logo"> <span id="shop-name"></span></div>
       <div id="lang" class="lang" data-lang="es" role="group" aria-label="Idioma / Language">
@@ -19,7 +22,10 @@
         <button type="button" data-lang="en">EN</button>
       </div>
     </header>
+  </div>
+  <div class="drip" aria-hidden="true"></div>
 
+  <main class="wrap">
     <!-- public view -->
     <section id="view-public">
       <div id="banner" class="banner hidden"></div>
@@ -34,16 +40,16 @@
       </div>
 
       <h2 class="section-title" data-i18n="flavorsToday">Sabores del día</h2>
-      <ul id="flavors" class="flavors"></ul>
+      <ul id="flavors" class="menu"></ul>
 
       <div id="toppings-wrap" class="hidden">
         <h2 class="section-title" data-i18n="toppings">Toppings</h2>
-        <ul id="toppings" class="flavors toppings"></ul>
+        <ul id="toppings" class="menu toppings"></ul>
       </div>
 
       <div id="crepes-wrap" class="hidden">
         <h2 class="section-title" data-i18n="crepes">Crepes</h2>
-        <ul id="crepes" class="flavors crepes"></ul>
+        <ul id="crepes" class="menu crepes"></ul>
       </div>
 
       <div id="prices-wrap">
@@ -51,17 +57,18 @@
         <ul id="prices" class="prices"></ul>
       </div>
 
-      <div id="socials-wrap" class="socials-wrap hidden">
+      <div id="socials-wrap" class="hidden">
         <h2 class="section-title" data-i18n="reviewUs">¿Te gustó? ¡Déjanos tu reseña!</h2>
         <div id="socials" class="socials"></div>
       </div>
 
       <p id="hours" class="hours"></p>
-      <div class="foot"><button id="btn-nubia" class="ghost small" data-i18n="iamNubia">Soy Nubia</button></div>
+      <div class="foot"><button id="btn-nubia" class="quiet" data-i18n="iamNubia">Soy Nubia</button></div>
     </section>
 
     <!-- editor (Nubia only) -->
     <section id="view-edit" class="hidden">
+      <h1 class="editor-title" data-i18n="editorTitle"></h1>
       <p class="hint" data-i18n="bothHint"></p>
 
       <div class="card">
@@ -79,48 +86,43 @@
       </div>
 
       <div class="card">
-        <div class="label" data-i18n="flavorsToday"></div>
+        <h2 class="card-title" data-i18n="flavorsToday"></h2>
         <ul id="edit-flavors" class="edit-list"></ul>
         <button type="button" id="add-flavor" class="addbtn" data-i18n="addFlavor"></button>
       </div>
 
       <div class="card">
-        <div class="label" data-i18n="toppings"></div>
+        <h2 class="card-title" data-i18n="toppings"></h2>
         <ul id="edit-toppings" class="edit-list toppings"></ul>
         <button type="button" id="add-topping" class="addbtn" data-i18n="addTopping"></button>
       </div>
 
       <div class="card">
-        <div class="label" data-i18n="crepes"></div>
+        <h2 class="card-title" data-i18n="crepes"></h2>
         <ul id="edit-crepes" class="edit-list crepes"></ul>
         <button type="button" id="add-crepe" class="addbtn" data-i18n="addCrepe"></button>
       </div>
 
       <div class="card">
-        <div class="label" data-i18n="prices"></div>
+        <h2 class="card-title" data-i18n="prices"></h2>
         <ul id="edit-prices" class="edit-list"></ul>
         <button type="button" id="add-price" class="addbtn" data-i18n="addPrice"></button>
       </div>
 
       <div class="card">
-        <div class="label" data-i18n="socials"></div>
-        <p class="hint small" data-i18n="socialsHint"></p>
-        <div id="edit-socials" class="bi"></div>
-      </div>
-
-      <div class="card">
-        <div class="label" data-i18n="qrCard"></div>
-        <p class="hint small" data-i18n="qrHint"></p>
-        <button type="button" id="open-qr" class="addbtn" data-i18n="qrOpen"></button>
-      </div>
-
-      <div class="card">
-        <div class="label" data-i18n="banner"></div>
+        <h2 class="card-title" data-i18n="banner"></h2>
         <p class="hint small" data-i18n="bannerHint"></p>
         <div id="edit-banner"></div>
       </div>
 
       <div class="card">
+        <h2 class="card-title" data-i18n="socials"></h2>
+        <p class="hint small" data-i18n="socialsHint"></p>
+        <div id="edit-socials" class="bi"></div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title" data-i18n="shopInfo"></h2>
         <div class="field first">
           <label data-i18n="shopName"></label>
           <div class="bi" id="edit-shop"></div>
@@ -131,11 +133,17 @@
         </div>
       </div>
 
-      <div class="savebar">
-        <button id="btn-logout" class="ghost" data-i18n="logout"></button>
-        <span id="save-msg" class="save-msg"></span>
-        <button id="btn-save" class="primary" data-i18n="save"></button>
+      <div class="card">
+        <h2 class="card-title" data-i18n="qrCard"></h2>
+        <p class="hint small" data-i18n="qrHint"></p>
+        <button type="button" id="open-qr" class="addbtn" data-i18n="qrOpen"></button>
       </div>
+
+      <footer class="savebar">
+        <button id="btn-logout" class="link" data-i18n="logout"></button>
+        <span id="save-msg" class="save-msg"></span>
+        <button id="btn-save" class="primary" data-i18n="save" disabled></button>
+      </footer>
     </section>
   </main>
 

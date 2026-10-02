@@ -302,33 +302,52 @@
   }
 
   // ---------- editor ----------
+  // Every row is laid out in the order Nubia thinks about it:
+  // flavor → availability → Spanish name → English name → photo → reorder.
+  let dirty = false;
   function setDirty(on) {
+    dirty = on;
+    $('btn-save').disabled = !on;
     const m = $('save-msg');
     m.className = 'save-msg';
     m.textContent = on ? t('unsaved') : '';
   }
 
-  // An input with a little tag in front of it ("ES", "EN", "$").
+  function input(cls, value, ph, onInput, attrs) {
+    const i = el('input', cls);
+    i.value = value || '';
+    i.placeholder = ph || '';
+    i.maxLength = 60;
+    Object.assign(i, attrs || {});
+    i.addEventListener('input', () => { onInput(i.value); renderPublic(); setDirty(true); });
+    return i;
+  }
+
+  // An input with a little tag in front of it ("$", "IG", ...).
   function tagged(tag, value, ph, onInput, attrs) {
     const { className, ...inputAttrs } = attrs || {};
     const wrap = el('div', 'tagged' + (className ? ' ' + className : ''));
-    const input = el('input');
-    input.value = value || '';
-    input.placeholder = ph || '';
-    input.maxLength = 60;
-    Object.assign(input, inputAttrs);
-    input.addEventListener('input', () => { onInput(input.value); renderPublic(); setDirty(true); });
-    wrap.append(el('span', 'tag', tag), input);
+    wrap.append(el('span', 'tag', tag), input('', value, ph, onInput, inputAttrs));
     return wrap;
   }
 
-  // Two inputs (Spanish + English) for one piece of Nubia's text.
-  function biField(container, key, phEs, phEn) {
+  // Spanish name in big text, English underneath in small text. They look like plain text until tapped.
+  function nameFields(obj, phKey, onChange) {
+    obj.name = bi(obj.name);
+    const es = input('name-es', obj.name.es, t(phKey), (v) => { obj.name.es = v; if (onChange) onChange(); });
+    const en = input('name-en', obj.name.en, t('enPh'), (v) => { obj.name.en = v; if (onChange) onChange(); });
+    es.setAttribute('aria-label', t(phKey));
+    en.setAttribute('aria-label', t('enPh'));
+    return [es, en];
+  }
+
+  // Spanish + English for one piece of shop text (greeting, name, hours).
+  function biField(container, key, phEs) {
     draft[key] = bi(draft[key]);
     const obj = draft[key];
     container.replaceChildren(
-      tagged('ES', obj.es, phEs, (v) => { obj.es = v; }, { maxLength: 120 }),
-      tagged('EN', obj.en, phEn, (v) => { obj.en = v; }, { maxLength: 120 }),
+      input('field-es', obj.es, phEs, (v) => { obj.es = v; }, { maxLength: 120 }),
+      input('field-en', obj.en, t('enPh'), (v) => { obj.en = v; }, { maxLength: 120 }),
     );
   }
 
@@ -340,47 +359,103 @@
     b.addEventListener('click', fn);
     return b;
   }
+  const linkBtn = (text, fn) => smallBtn('link', text, null, fn);
 
-  function move(list, i, dir) {
-    const j = i + dir;
-    [list[i], list[j]] = [list[j], list[i]];
-    structural();
+  const TRASH = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function trashBtn(list, i) {
+    const b = smallBtn('trash', '', t('remove'), () => { list.splice(i, 1); structural(); });
+    b.innerHTML = TRASH;
+    return b;
   }
 
-  function moveBtns(list, i) {
-    return [
-      smallBtn('icon', '↑', t('up'), () => move(list, i, -1), i === 0),
-      smallBtn('icon', '↓', t('down'), () => move(list, i, 1), i === list.length - 1),
-      smallBtn('icon del', '✕', t('remove'), () => { list.splice(i, 1); structural(); }),
-    ];
+  function soldSwitch(f) {
+    const lab = el('label', 'mini-switch');
+    const cb = el('input');
+    cb.type = 'checkbox';
+    cb.checked = !!f.soldOut;
+    cb.addEventListener('change', () => { f.soldOut = cb.checked; structural(); });
+    lab.append(cb, el('span', 'track'), el('span', 'txt', t('soldOut')));
+    return lab;
   }
 
-  // Editor rows for flavors, toppings and crepes: color dot, ES/EN names, sold out, photo, reorder
-  // (+ a price box for crepes).
-  function renderScoopEditor(ul, list, phEs, phEn, withPrice) {
+  function priceInput(obj) {
+    return tagged(draft.currency || '$', obj.price, t('pricePh'), (v) => { obj.price = v.trim(); },
+      { inputMode: 'decimal', maxLength: 10, className: 'money', ariaLabel: t('priceLabel') });
+  }
+
+  // ⋮⋮ handle: drag with a finger or mouse to reorder; arrow keys work too.
+  function dragHandle(ul, li, list) {
+    const h = smallBtn('handle', '⋮⋮', t('drag'), () => {});
+    h.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      try { h.setPointerCapture(e.pointerId); } catch { /* keep going without capture */ }
+      const from = [...ul.children].indexOf(li);
+      li.classList.add('dragging');
+      const move = (ev) => {
+        let before = null;
+        for (const sib of ul.children) {
+          if (sib === li) continue;
+          const r = sib.getBoundingClientRect();
+          if (ev.clientY < r.top + r.height / 2) { before = sib; break; }
+        }
+        if (before) { if (li.nextElementSibling !== before) ul.insertBefore(li, before); }
+        else if (ul.lastElementChild !== li) ul.append(li);
+      };
+      const done = () => {
+        h.removeEventListener('pointermove', move);
+        h.removeEventListener('pointerup', done);
+        h.removeEventListener('pointercancel', done);
+        li.classList.remove('dragging');
+        const to = [...ul.children].indexOf(li);
+        if (to !== from) {
+          const [item] = list.splice(from, 1);
+          list.splice(to, 0, item);
+          structural();
+        }
+      };
+      h.addEventListener('pointermove', move);
+      h.addEventListener('pointerup', done);
+      h.addEventListener('pointercancel', done);
+    });
+    h.addEventListener('keydown', (e) => {
+      if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+      e.preventDefault();
+      const i = [...ul.children].indexOf(li);
+      const j = e.key === 'ArrowUp' ? i - 1 : i + 1;
+      if (j < 0 || j >= list.length) return;
+      [list[i], list[j]] = [list[j], list[i]];
+      structural();
+      ul.children[j].querySelector('.handle').focus();
+    });
+    return h;
+  }
+
+  // Rows for flavors, toppings and crepes (crepes also get a price).
+  function renderScoopEditor(ul, list, phKey, withPrice) {
     ul.replaceChildren();
     list.forEach((f, i) => {
-      f.name = bi(f.name);
-      const li = el('li', 'item flavor' + (f.soldOut ? ' sold' : ''));
+      const li = el('li', 'row-item' + (f.soldOut ? ' sold' : ''));
       const dot = smallBtn('scoop pick', '', t('pickColor'), () => { openSwatch = openSwatch === f ? null : f; renderEditor(); });
       dot.style.background = colorOf(f);
       const recolor = () => { dot.style.background = colorOf(f); };
-      const actions = el('div', 'actions');
-      actions.append(
-        smallBtn('soldbtn' + (f.soldOut ? ' on' : ''), t('soldOut'), null, () => { f.soldOut = !f.soldOut; structural(); }),
-        f.photo ? '' : smallBtn('photobtn', t('photo'), null, () => choosePhoto(f, 'photo', 900)),
-        el('span', 'grow'),
-        ...moveBtns(list, i),
-      );
-      li.append(
-        dot,
-        tagged('ES', f.name.es, t(phEs), (v) => { f.name.es = v; recolor(); }),
-        tagged('EN', f.name.en, t(phEn), (v) => { f.name.en = v; recolor(); }),
-        withPrice ? tagged(draft.currency || '$', f.price, t('pricePh'), (v) => { f.price = v.trim(); }, { inputMode: 'decimal', maxLength: 10, className: 'money' }) : '',
-        actions,
-      );
-      if (openSwatch === f) li.append(swatches(f));
-      if (f.photo) li.append(photoRow(f, 'photo', 900));
+
+      const main = el('div', 'row-main');
+      main.append(...nameFields(f, phKey, recolor));
+      if (withPrice) { const pr = el('div', 'row-price'); pr.append(priceInput(f)); main.append(pr); }
+      const meta = el('div', 'row-meta');
+      meta.append(soldSwitch(f));
+      if (f.photo) {
+        meta.append(photoImg(f.photo, 'meta-thumb'), linkBtn(t('editPhoto'), () => choosePhoto(f, 'photo', 900)),
+          linkBtn(t('removePhoto'), () => { f.photo = ''; structural(); }));
+      } else {
+        meta.append(linkBtn(t('photo'), () => choosePhoto(f, 'photo', 900)));
+      }
+      meta.append(el('span', 'grow'), trashBtn(list, i));
+      main.append(meta);
+      if (openSwatch === f) main.append(swatches(f));
+
+      li.append(dragHandle(ul, li, list), dot, main);
       ul.append(li);
     });
   }
@@ -391,31 +466,27 @@
     lbl.textContent = draft.open ? t('open') : t('closed');
     lbl.className = 'big ' + (draft.open ? 'open' : 'closed');
 
-    biField($('edit-note'), 'note', STRINGS.es.messagePh, STRINGS.en.messagePh);
-    biField($('edit-shop'), 'shop', 'Manitas Vincentine', 'Manitas Vincentine');
-    biField($('edit-hours'), 'hours', STRINGS.es.hoursPh, STRINGS.en.hoursPh);
+    biField($('edit-note'), 'note', t('messagePh'));
+    biField($('edit-shop'), 'shop', 'Manitas Vincentine');
+    biField($('edit-hours'), 'hours', t('hoursPh'));
     $('edit-banner').replaceChildren(draft.banner
       ? photoRow(draft, 'banner', 1600, 'wide')
-      : smallBtn('addbtn', t('addBanner'), null, () => choosePhoto(draft, 'banner', 1600)));
+      : smallBtn('addbtn', '+ ' + t('addBanner'), null, () => choosePhoto(draft, 'banner', 1600)));
 
-    renderScoopEditor($('edit-flavors'), draft.flavors, 'flavorEs', 'flavorEn');
-    renderScoopEditor($('edit-toppings'), draft.toppings, 'toppingEs', 'toppingEn');
-    renderScoopEditor($('edit-crepes'), draft.crepes, 'crepeEs', 'crepeEn', true);
+    renderScoopEditor($('edit-flavors'), draft.flavors, 'flavorEs');
+    renderScoopEditor($('edit-toppings'), draft.toppings, 'toppingEs');
+    renderScoopEditor($('edit-crepes'), draft.crepes, 'crepeEs', true);
 
     // prices
     const pl = $('edit-prices');
     pl.replaceChildren();
     draft.prices.forEach((p, i) => {
-      p.name = bi(p.name);
-      const li = el('li', 'item price');
-      const actions = el('div', 'actions');
-      actions.append(...moveBtns(draft.prices, i));
-      li.append(
-        tagged('ES', p.name.es, t('itemEs'), (v) => { p.name.es = v; }),
-        tagged(draft.currency || '$', p.price, t('pricePh'), (v) => { p.price = v.trim(); }, { inputMode: 'decimal', maxLength: 10 }),
-        tagged('EN', p.name.en, t('itemEn'), (v) => { p.name.en = v; }),
-        actions,
-      );
+      const li = el('li', 'row-item price-row');
+      const main = el('div', 'row-main');
+      main.append(...nameFields(p, 'itemEs'));
+      const side = el('div', 'row-side');
+      side.append(priceInput(p), trashBtn(draft.prices, i));
+      li.append(dragHandle(pl, li, draft.prices), main, side);
       pl.append(li);
     });
 
@@ -437,11 +508,11 @@
     }
     const custom = el('label', 'sw custom' + (f.color && !PALETTE.includes(f.color) ? ' on' : ''));
     custom.title = t('customColor');
-    const input = el('input');
-    input.type = 'color';
-    input.value = f.color || '#f4a3b5';
-    input.addEventListener('change', () => pick(input.value));
-    custom.append(input);
+    const picker = el('input');
+    picker.type = 'color';
+    picker.value = f.color || '#f4a3b5';
+    picker.addEventListener('change', () => pick(picker.value));
+    custom.append(picker);
     box.append(custom, smallBtn('auto' + (f.color ? '' : ' on'), t('autoColor'), null, () => pick('')));
     return box;
   }
@@ -457,8 +528,8 @@
     const row = el('div', 'photo-row' + (cls ? ' ' + cls : ''));
     row.append(
       photoImg(obj[key], ''),
-      smallBtn('', t('changePhoto'), null, () => choosePhoto(obj, key, maxSide)),
-      smallBtn('del', t('removePhoto'), null, () => { obj[key] = ''; structural(); }),
+      linkBtn(t('editPhoto'), () => choosePhoto(obj, key, maxSide)),
+      linkBtn(t('removePhoto'), () => { obj[key] = ''; structural(); }),
     );
     return row;
   }
@@ -476,11 +547,12 @@
     const first = $(listId).lastElementChild.querySelector('input');
     if (first) first.focus();
   }
-  $('add-flavor').addEventListener('click', () => addAndFocus(draft.flavors, { name: { es: '', en: '' }, soldOut: false }, 'edit-flavors'));
-  $('add-topping').addEventListener('click', () => addAndFocus(draft.toppings, { name: { es: '', en: '' }, soldOut: false }, 'edit-toppings'));
-  $('add-crepe').addEventListener('click', () => addAndFocus(draft.crepes, { name: { es: '', en: '' }, soldOut: false, price: '' }, 'edit-crepes'));
+  const blankName = () => ({ es: '', en: '' });
+  $('add-flavor').addEventListener('click', () => addAndFocus(draft.flavors, { name: blankName(), soldOut: false }, 'edit-flavors'));
+  $('add-topping').addEventListener('click', () => addAndFocus(draft.toppings, { name: blankName(), soldOut: false }, 'edit-toppings'));
+  $('add-crepe').addEventListener('click', () => addAndFocus(draft.crepes, { name: blankName(), soldOut: false, price: '' }, 'edit-crepes'));
+  $('add-price').addEventListener('click', () => addAndFocus(draft.prices, { name: blankName(), price: '' }, 'edit-prices'));
   $('open-qr').addEventListener('click', () => window.open('qr.html', '_blank', 'noopener'));
-  $('add-price').addEventListener('click', () => addAndFocus(draft.prices, { name: { es: '', en: '' }, price: '' }, 'edit-prices'));
 
   function startEditing() {
     draft = JSON.parse(JSON.stringify(data));
@@ -490,6 +562,7 @@
     draft.socials = { ...(draft.socials || {}) };
     draft.prices = draft.prices || [];
     draft.currency = draft.currency || '$';
+    openSwatch = null;
     $('view-public').classList.add('hidden');
     $('view-edit').classList.remove('hidden');
     renderEditor();
@@ -580,6 +653,7 @@
       draft = JSON.parse(JSON.stringify(body));
       renderEditor();
       renderPublic();
+      setDirty(false);
       m.className = 'save-msg ok';
       m.textContent = demo ? t('demoSaved') : t('saved');
     } catch (e) {
@@ -587,7 +661,7 @@
       m.className = 'save-msg err';
       m.textContent = `${t('saveFail')} (${e.status || e.message})`;
     } finally {
-      btn.disabled = false;
+      btn.disabled = !dirty;
     }
   });
 
