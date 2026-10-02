@@ -16,36 +16,32 @@
   "flavors": [
     {
       "name": {
-        "es": "Vainilla",
-        "en": "Vanilla"
+        "es": "Kefir",
+        "en": ""
       },
-      "soldOut": false
+      "soldOut": false,
+      "color": "#f4f1ea"
     },
     {
       "name": {
-        "es": "Chocolate",
-        "en": "Chocolate"
+        "es": "Maracuyá",
+        "en": "passion fruit"
       },
-      "soldOut": false
+      "soldOut": false,
+      "color": "#f5e663"
     },
     {
       "name": {
-        "es": "Frutilla",
-        "en": "Strawberry"
+        "es": "Naranjilla",
+        "en": ""
       },
-      "soldOut": false
+      "soldOut": false,
+      "color": "#f7b267"
     },
     {
       "name": {
-        "es": "Menta con chispas",
-        "en": "Mint Chip"
-      },
-      "soldOut": false
-    },
-    {
-      "name": {
-        "es": "Galleta con crema",
-        "en": "Cookies & Cream"
+        "es": "Mora",
+        "en": "Black Berry"
       },
       "soldOut": false
     }
@@ -109,31 +105,17 @@
   "prices": [
     {
       "name": {
-        "es": "1 bola",
+        "es": "1 conito",
         "en": "1 scoop"
       },
-      "price": "1.50"
+      "price": ".75"
     },
     {
       "name": {
-        "es": "2 bolas",
-        "en": "2 scoops"
-      },
-      "price": "2.50"
-    },
-    {
-      "name": {
-        "es": "3 bolas",
-        "en": "3 scoops"
-      },
-      "price": "3.25"
-    },
-    {
-      "name": {
-        "es": "Batido",
+        "es": "taza",
         "en": "Milkshake"
       },
-      "price": "3.50"
+      "price": "1.25"
     }
   ],
   "socials": {
@@ -143,5 +125,5 @@
     "whatsapp": "",
     "google": ""
   },
-  "updated": "2026-10-01T23:20:10.000Z"
+  "updated": "2026-10-02T22:35:28.501Z"
 }
