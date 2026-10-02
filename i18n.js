@@ -1,6 +1,7 @@
 // All the words on the site, in Spanish and English.
 window.STRINGS = {
   es: {
+    madeBy: 'hecho por HKugz',
     loginHelp: 'Si olvidaste la contraseña, pídesela a quien hizo la página.',
     confirmLeave: 'Tienes cambios sin guardar. ¿Salir sin guardar?',
     confirmDelete: '¿Borrar «{name}»?',
@@ -88,6 +89,7 @@ window.STRINGS = {
     keyBad: 'La llave de GitHub no funciona. Hay que configurarla otra vez.',
   },
   en: {
+    madeBy: 'made by HKugz',
     loginHelp: 'Forgot the password? Ask whoever made the page.',
     confirmLeave: 'You have unsaved changes. Leave without saving?',
     confirmDelete: 'Delete “{name}”?',
