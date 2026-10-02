@@ -57,6 +57,10 @@ Changes show up for everyone in about a minute.
 | `photos/` | Nubia's uploaded photos (created on first upload) |
 | `icon.svg` / `make_icon.py` | the **Hl** icon and the script that draws it |
 
+## Updating the code
+
+GitHub Pages caches files for ~10 minutes. After changing `style.css` or any `.js` file, bump the `?v=` number on every `<link>`/`<script>` in `index.html`, `setup.html` and `qr.html` (e.g. `?v=2.0` → `?v=2.1`) so visitors get the new files together.
+
 ## Try it locally
 
 ```
