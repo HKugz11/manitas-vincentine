@@ -35,7 +35,7 @@
     document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
     document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
     if (data) renderPublic();
-    if (draft) renderEditor();
+    if (draft) { renderEditor(); if (dirty) setDirty(true); }
   }
   $('lang').addEventListener('click', (e) => {
     const b = e.target.closest('button');
@@ -362,9 +362,16 @@
   const linkBtn = (text, fn) => smallBtn('link', text, null, fn);
 
   const TRASH = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  // Asks first, so a slip of the finger doesn't delete anything.
   function trashBtn(list, i) {
-    const b = smallBtn('trash', '', t('remove'), () => { list.splice(i, 1); structural(); });
+    const b = smallBtn('trash', '', t('remove'), () => {
+      const name = tx(list[i].name).trim();
+      if (name && !confirm(t('confirmDelete').replace('{name}', name))) return;
+      list.splice(i, 1);
+      structural();
+    });
     b.innerHTML = TRASH;
+    b.append(el('span', '', t('deleteWord')));
     return b;
   }
 
@@ -451,11 +458,12 @@
       } else {
         meta.append(linkBtn(t('photo'), () => choosePhoto(f, 'photo', 900)));
       }
-      meta.append(el('span', 'grow'), trashBtn(list, i));
       main.append(meta);
       if (openSwatch === f) main.append(swatches(f));
 
-      li.append(dragHandle(ul, li, list), dot, main);
+      const side = el('div', 'row-side');
+      side.append(trashBtn(list, i));
+      li.append(dragHandle(ul, li, list), dot, main, side);
       ul.append(li);
     });
   }
@@ -577,7 +585,14 @@
     renderPublic();
     scrollTo(0, 0);
   }
-  $('btn-logout').addEventListener('click', stopEditing);
+  $('btn-logout').addEventListener('click', () => {
+    if (dirty && !confirm(t('confirmLeave'))) return;
+    stopEditing();
+  });
+  // closing the tab / going back with unsaved changes → the browser asks first
+  window.addEventListener('beforeunload', (e) => {
+    if (draft && dirty) { e.preventDefault(); e.returnValue = ''; }
+  });
 
   // ---------- save ----------
   async function putData(body) {
@@ -700,8 +715,10 @@
     msg.textContent = t('checking');
     try {
       const lock = (await fetchFile('lock.json')).json;
-      if (!lock.setup) {
-        // Not set up yet. On your own computer, let any password in so the editor can be tried out.
+      const demoWanted = isLocal && new URLSearchParams(location.search).has('demo');
+      if (!lock.setup || demoWanted) {
+        // Not set up yet (or ?demo on your own computer): let any password in so the editor
+        // can be tried out. Nothing is saved.
         if (!isLocal) { msg.textContent = t('notSetup'); return; }
         demo = true;
       } else {

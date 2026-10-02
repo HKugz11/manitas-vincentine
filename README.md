@@ -67,4 +67,4 @@ GitHub Pages caches files for ~10 minutes. After changing `style.css` or any `.j
 python -m http.server 5173
 ```
 
-Then open http://localhost:5173. Before setup, "Soy Nubia" accepts any password locally (demo mode, nothing is saved).
+Then open http://localhost:5173/?demo — on localhost, `?demo` makes "Soy Nubia" accept any password (demo mode, nothing is saved). It never works on the live site.
