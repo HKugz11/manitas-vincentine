@@ -1,6 +1,6 @@
-# Manitas Vincentine
+# Manitas Vincentina
 
-A tiny website for Nubia's ice cream shop, **Manitas Vincentine**: **flavors of the day**, **toppings**, **prices** and an **open / closed** sign,
+A tiny website for Nubia's ice cream shop, **Manitas Vincentina**: **flavors of the day**, **toppings**, **prices** and an **open / closed** sign,
 in Spanish and English (slider at the top). Runs free on GitHub Pages: no server, no database.
 
 Live: https://hkugz11.github.io/manitas-vincentine/

@@ -475,7 +475,7 @@
     lbl.className = 'big ' + (draft.open ? 'open' : 'closed');
 
     biField($('edit-note'), 'note', t('messagePh'));
-    biField($('edit-shop'), 'shop', 'Manitas Vincentine');
+    biField($('edit-shop'), 'shop', 'Manitas Vincentina');
     biField($('edit-hours'), 'hours', t('hoursPh'));
     $('edit-banner').replaceChildren(draft.banner
       ? photoRow(draft, 'banner', 1600, 'wide')
