@@ -105,25 +105,25 @@
   "prices": [
     {
       "name": {
-        "es": "1 conito",
-        "en": "1 scoop"
+        "es": "conito",
+        "en": "cone"
       },
       "price": ".75"
     },
     {
       "name": {
         "es": "taza",
-        "en": "Milkshake"
+        "en": "cup"
       },
       "price": "1.25"
     }
   ],
   "socials": {
-    "instagram": "",
+    "instagram": "@GOOF",
     "facebook": "",
     "tiktok": "",
     "whatsapp": "",
     "google": ""
   },
-  "updated": "2026-10-02T22:35:28.501Z"
+  "updated": "2026-10-03T00:49:45.067Z"
 }
